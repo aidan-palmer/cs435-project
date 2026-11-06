@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# IDEs
+.idea/
+.vscode/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Data - do not commit source or generated large datasets
+data/raw/**
+data/interim/**
+data/processed/**
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+*.parquet
+*.csv
+*.csv.gz
+*.zip
+*.tar.gz
+
+# Model artifacts
+*.keras
+*.h5
+*.pkl
+*.joblib
+checkpoints/
+
+# Spark/local runtime
+.sparkStaging/
+metastore_db/
+derby.log
+
+# Logs and generated output
+*.log
+outputs/logs/**
+
+# OS
+.DS_Store
+Thumbs.db
