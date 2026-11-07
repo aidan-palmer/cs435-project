@@ -39,7 +39,9 @@ With Java 17 and PySpark 4.0.1 installed, run this from the repository root. Rep
 DATA_DIR="$HOME/**YOUR FILE ROOT DIRECTORY**"
 SPARK_LOCAL_IP=127.0.0.1 \
 PYSPARK_SUBMIT_ARGS='--master local[2] --conf spark.sql.shuffle.partitions=4 pyspark-shell' \
-python3 scripts/resstock_pilot.py "$DATA_DIR/larimer_baseline" /tmp/resstock-pilot-hourly \
+python scripts/resstock_pilot.py \
+  "$DATA_DIR/larimer_baseline" \
+  "$(mktemp -d)/resstock-pilot-hourly" \
   --metadata "$DATA_DIR/CO_baseline_metadata_and_annual_results.csv" \
   --test-start 2018-10-01
 ```

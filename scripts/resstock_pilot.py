@@ -11,7 +11,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("profiles", type=Path)
     parser.add_argument("output", type=Path)
-    parser.add_argument("--ids", nargs="+", type=int, default=[128, 1414, 3575])
+    cohort = parser.add_mutually_exclusive_group()
+    cohort.add_argument("--ids", nargs="+", type=int, default=[128, 1414, 3575])
+    cohort.add_argument("--all-larimer", action="store_true", help="Use every Larimer County baseline profile")
     parser.add_argument("--test-start", required=True, help="First test date, YYYY-MM-DD")
     parser.add_argument("--electricity-column", default="out.electricity.total.energy_consumption")
     parser.add_argument("--metadata", type=Path, required=True)
@@ -26,12 +28,20 @@ def main():
         metadata = spark.read.option("header", True).csv(str(args.metadata))
         eligible = metadata.where(
             (F.col("upgrade") == "0")
+            & (F.col("`in.state`") == "CO")
             & (F.col("`in.county`") == "G0800690")
-            & (F.col("`in.geometry_building_type_acs`") == "Single-Family Detached")
-        ).select(F.col("bldg_id").cast("long").alias("building_id"))
-        ids = sorted(set(args.ids))
-        if eligible.where(F.col("building_id").isin(ids)).distinct().count() != len(ids):
-            raise ValueError("Some IDs are absent from the detached Larimer baseline metadata")
+        )
+        if not args.all_larimer:
+            eligible = eligible.where(
+                F.col("`in.geometry_building_type_acs`") == "Single-Family Detached"
+            )
+        eligible_ids = {
+            int(row.bldg_id) for row in eligible.select("bldg_id").distinct().collect()
+        }
+        ids = sorted(eligible_ids if args.all_larimer else set(args.ids))
+        if not ids or not set(ids).issubset(eligible_ids):
+            raise ValueError("No matching profiles or some IDs are outside the selected metadata cohort")
+        print(f"Processing {len(ids)} Larimer County baseline profiles")
         raw = spark.read.parquet(*(str(args.profiles / f"{i}-0.parquet") for i in ids))
         if args.electricity_column not in raw.columns:
             raise ValueError(f"Electricity column not found: {args.electricity_column}")
@@ -65,7 +75,7 @@ def main():
             F.sum("interval_kwh").alias("source_kwh")
         ).join(hourly.groupBy("building_id").agg(
             F.count("*").alias("hours"), F.sum("demand_kwh").alias("hourly_kwh")
-        ), "building_id").orderBy("building_id").show(truncate=False)
+        ), "building_id").orderBy("building_id").show(len(ids) if len(ids) <= 10 else 10, truncate=False)
         past = hourly.select(
             "building_id", F.expr("hour_start + INTERVAL 7 DAYS").alias("hour_start"),
             F.col("demand_kwh").alias("prediction_kwh")
