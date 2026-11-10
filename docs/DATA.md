@@ -15,37 +15,38 @@ This file is the source of truth for datasets used by the project. Update it whe
 
 ### 1. ResStock Hourly Demand
 
-**Role:** Primary technical dataset for residential electricity demand and building characteristics.
+Use ResStock 2024 Release 2, AMY 2018, baseline (`upgrade=0`), with Colorado metadata filtered to `in.county=G0800690` (Larimer County). The downloaded inventory contains 573 profiles totaling 3,006,131,341 bytes. Of these, 382 metadata records are labeled `Single-Family Detached` in `in.geometry_building_type_acs`. Use that cohort for the initial placement experiment. Larimer County is a regional proxy for Fort Collins. The profiles represent simulated buildings.
 
-**Initial proposal estimate:** approximately 1.68 GB for the Fort Collins subset.
+The metadata and profiles are stored outside Git. To reproduce the download, use `scripts/download_larimer_baseline.py` with the Colorado metadata CSV or the filtered workbook, and use the [baseline profile URL](https://oedi-data-lake.s3.amazonaws.com/nrel-pds-building-stock/end-use-load-profiles-for-us-building-stock/2024/resstock_amy2018_release_2/timeseries_individual_buildings/by_state/upgrade=0/state=CO/418477-0.parquet) as the template. Retain the original metadata URL and confirm its release before freezing the inventory.
 
-**Source:** National Laboratory of the Rockies / ResStock datasets and documentation.
+The pilot uses profiles 128, 1414, and 3575. It sums four 15-minute interval energy values from `out.electricity.total.energy_consumption` for each hour. Timestamps are interval ends. The code preserves the source wall clock through aggregation. Confirm the source time zone before joining PV or emissions data.
 
-**Planned use:**
+#### Pilot verification
 
-- hourly residential electricity demand;
-- building characteristics;
-- available weather information;
-- model inputs for baseline, Random Forest, and LSTM forecasts.
+| Building ID | 15-minute intervals | Hourly rows | Total demand (kWh) |
+|---|---:|---:|---:|
+| 128 | 35,040 | 8,760 | 8,346.248 |
+| 1414 | 35,040 | 8,760 | 5,689.824 |
+| 3575 | 35,040 | 8,760 | 9,684.960 |
 
-**Decisions to record before processing:**
+The three files passed the interval spacing and completeness checks. Aggregation preserved energy to floating-point precision. The rolling same-hour-last-week baseline scored 6,624 building-hours from Oct 1 through Dec 31, 2018. Pilot MAE was 0.380 kWh and RMSE was 0.891 kWh per hourly interval. The solar and emissions example uses synthetic inputs to check the pipeline.
 
-- [ ] ResStock release/version:
-- [ ] weather year:
-- [ ] exact geography/filter used for Fort Collins area:
-- [ ] included building types:
-- [ ] electricity field(s) selected:
-- [ ] timestamp convention/timezone:
-- [ ] interval-energy vs. interval-power interpretation:
+#### Reproduce the pilot
 
-**Validation checks:**
+With Java 17 and PySpark 4.0.1 installed, run this from the repository root. Replace the paths with your local paths and use a new output directory each time.
 
-- [ ] missing timestamps;
-- [ ] duplicate records;
-- [ ] incomplete daily profiles;
-- [ ] negative or implausible demand;
-- [ ] consistent 24-hour forecast targets;
-- [ ] expected number of records per building/time period.
+```bash
+DATA_DIR="$HOME/**YOUR FILE ROOT DIRECTORY**"
+SPARK_LOCAL_IP=127.0.0.1 \
+PYSPARK_SUBMIT_ARGS='--master local[2] --conf spark.sql.shuffle.partitions=4 pyspark-shell' \
+python scripts/resstock_pilot.py \
+  "$DATA_DIR/larimer_baseline" \
+  "$(mktemp -d)/resstock-pilot-hourly" \
+  --metadata "$DATA_DIR/CO_baseline_metadata_and_annual_results.csv" \
+  --test-start 2018-10-01
+```
+
+Next, confirm metadata provenance and the source clock, validate the 382-home cohort, then freeze a chronological train/validation/test split before comparing Random Forest and LSTM.
 
 ---
 
