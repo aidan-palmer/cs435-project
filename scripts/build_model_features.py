@@ -50,6 +50,12 @@ def main():
     hourly.printSchema()
     hourly.show(10, truncate=False)
     
+    # Save hourly data to HDFS as Parquet
+    output_dir = "/solaropt/hourly_demand"
+    hourly.write.mode("overwrite").parquet(output_dir)
+    print(f"Hourly data saved to {output_dir}")
+    spark.stop()
+    
 
 if __name__ == "__main__":
     main()
