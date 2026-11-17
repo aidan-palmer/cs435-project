@@ -116,22 +116,59 @@ src/simulation/solar.py
 
 ### 6. Grid-import simulation
 
-For each household/hour:
+For each simulated building and UTC hour, all energy values are in kWh:
 
-```text
-grid_without_solar = demand
-self_consumed_solar = min(demand, solar_generation)
-grid_with_solar = max(demand - solar_generation, 0)
-grid_reduction = grid_without_solar - grid_with_solar
+| Output column | Calculation |
+|---|---|
+| `grid_import_without_solar_kwh` | Hourly demand |
+| `self_consumed_solar_kwh` | Smaller of demand and solar generation |
+| `grid_import_with_solar_kwh` | Demand minus self-consumed solar |
+| `excess_solar_kwh` | Solar generation minus self-consumed solar |
+| `grid_reduction_kwh` | Import without solar minus import with solar |
+
+Surplus is recorded in its own column. It represents energy available for export or curtailment under a later policy. The hourly model uses solar within the hour it is generated, with zero export credit and no battery storage. Each row represents an installation scenario for one building. Apply the placement selection before aggregating solar benefit across buildings.
+
+Run the [simulation script](../scripts/simulate_grid_import.py) from the repository root after creating the joined Parquet described in [DATA.md](DATA.md#join-2018-demand-and-rooftop-solar):
+
+```bash
+SPARK_LOCAL_IP=127.0.0.1 \
+PYSPARK_SUBMIT_ARGS='--master local[2] --conf spark.sql.shuffle.partitions=8 pyspark-shell' \
+.venv/bin/python scripts/simulate_grid_import.py \
+  data/processed/resstock-pvwatts-2018 \
+  data/processed/grid-import-2018
 ```
 
-If exported solar is later modeled, it must be treated separately and documented.
+The output retains the input building ID, UTC timestamp, and offset-aware Mountain Time label. Choose a new output directory for each run. Run the unit tests with `SPARK_LOCAL_IP=127.0.0.1 .venv/bin/python -m unittest discover -s tests`.
 
-Suggested module:
+#### Explore the hourly simulation
 
-```text
-src/simulation/grid.py
+Run the local dashboard after generating the grid-import Parquet:
+
+```bash
+SPARK_LOCAL_IP=127.0.0.1 \
+PYSPARK_SUBMIT_ARGS='--master local[2] --conf spark.sql.shuffle.partitions=8 pyspark-shell' \
+.venv/bin/python scripts/serve_grid_dashboard.py data/processed/grid-import-2018
 ```
+
+Open `http://127.0.0.1:8765` while the process is running. In an IDE, use the repository root as the working directory, pass `data/processed/grid-import-2018` as the script parameter, and set the same two environment variables. Pass `--port 8766` if the default port is in use.
+
+#### Find a simulated building
+
+The dashboard reads `../DATA_for_project/CO_baseline_metadata_and_annual_results.csv` by default. If you keep the Colorado baseline metadata elsewhere, add `--metadata "path/to/CO_baseline_metadata_and_annual_results.csv"` to the dashboard command or the IDE Parameters field. The [ResStock data instructions](DATA.md#1-resstock-hourly-demand) link to the original CSV. The dashboard matches its baseline `bldg_id` to the simulation's `building_id`. Buildings without a matching metadata record appear by ID.
+
+Each result reads like **Single-Family Detached · 1,698 sq ft · 2000s · Natural Gas · ID 128**. The labels describe simulated dwellings.
+
+| Label | Meaning | Example search |
+|---|---|---|
+| Building type | Modeled housing structure | `detached` |
+| Square footage | Modeled floor area in square feet | `1698` or `1,698` |
+| Construction decade | Modeled construction vintage | `2000s` |
+| Heating fuel | Modeled heating fuel | `natural gas` |
+| ID | ResStock building identifier | `id 128` |
+
+Type one or more terms into **Search buildings**. For example, `detached 2000s natural gas` matches labels containing all those terms. Then choose a result from **Building**. To return to the aggregate view, clear the search and choose **All buildings**.
+
+Set the Mountain Time date and click **Show day**. **Most productive day** jumps to the date with the greatest total solar generation for the selected scope. Ties use the earliest date. The chart maintains the separate repeated hour on the fall clock change.
 
 ### 7. Avoided-CO2 estimation
 

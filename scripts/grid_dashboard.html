@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SolarOpt · Grid import</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --paper: light-dark(#f2f6fc, #081424);
+      --panel: light-dark(#fff, #15243a);
+      --ink: light-dark(#14243b, #eef5ff);
+      --muted: light-dark(#425671, #b9cbe2);
+      --border: light-dark(#c8d6e7, #405874);
+      --button: light-dark(#164b81, #c0dcff);
+      --button-ink: light-dark(#fff, #14243b);
+      --before: light-dark(#122749, #e1edff);
+      --after: light-dark(#2575bd, #4c84d6);
+      --excess: light-dark(#087895, #57cde5);
+      --control-border: light-dark(#7288a4, #7791b1);
+      --error: light-dark(#9b480a, #ffb36f);
+      font: 16px/1.5 system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { width: min(100% - 2rem, 69rem); margin: 2.75rem auto 3rem; }
+    header { margin-bottom: 1.4rem; }
+    h1, h2, p { margin: 0; }
+    h1 { font-size: clamp(2rem, 6vw, 3.3rem); line-height: 1.1; letter-spacing: -.045em; }
+    h2 { font-size: 1.15rem; }
+    header p, #scope, .unit, #inspection, footer { color: var(--muted); }
+    header p { margin-top: .55rem; }
+    form, .chart-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.1rem;
+    }
+    fieldset {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(9rem, 1fr) auto auto;
+      gap: .85rem;
+      align-items: end;
+      border: 0;
+      margin: 0;
+      padding: 0;
+    }
+    .building-fields {
+      grid-column: 1 / -1;
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(10rem, .55fr) minmax(0, 1fr);
+      gap: .45rem .85rem;
+    }
+    #building-matches { grid-column: 1 / -1; color: var(--muted); font-size: .82rem; }
+    label { min-width: 0; display: grid; gap: .3rem; font-weight: 600; font-size: .875rem; }
+    input, select, button {
+      font: inherit;
+      min-width: 0;
+      min-height: 2.75rem;
+      padding: .45rem .75rem;
+      color: var(--ink);
+      background: var(--panel);
+      border: 1px solid var(--control-border);
+      border-radius: .45rem;
+    }
+    input, select { width: 100%; }
+    button { font-weight: 600; cursor: pointer; }
+    button[type="submit"] { background: var(--button); color: var(--button-ink); border-color: var(--button); }
+    button:disabled { opacity: .6; cursor: wait; }
+    #status { min-height: 1.5em; margin: .45rem 0 .65rem; color: var(--muted); }
+    #status[data-error="true"] { color: var(--error); }
+    .chart-heading { display: flex; gap: .2rem 1rem; flex-wrap: wrap; align-items: baseline; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0 0; }
+    .metric { padding-top: .6rem; border-top: 1px solid var(--border); }
+    .metric dt, .unit { font-size: .82rem; }
+    .metric dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 650; font-size: clamp(1.05rem, 2.3vw, 1.5rem); }
+    .legend { display: flex; flex-wrap: wrap; gap: .25rem 1rem; padding: 0; margin: .9rem 0 .15rem; list-style: none; font-size: .85rem; }
+    .legend li { display: flex; align-items: center; gap: .4rem; }
+    .legend span { display: block; width: 1.4rem; border-top: 3px solid; }
+    .legend .before { border-color: var(--before); border-top-style: dashed; }
+    .legend .after { border-color: var(--after); }
+    .legend .excess { border-color: var(--excess); border-top-style: dotted; }
+    #chart { display: block; width: 100%; height: 295px; }
+    #chart:focus-visible { outline: 2px solid var(--after); outline-offset: 2px; }
+    #inspection { min-height: 2em; font-size: .85rem; font-variant-numeric: tabular-nums; }
+    footer { margin-top: .9rem; font-size: .87rem; }
+    @media (max-width: 50rem) { fieldset { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 37rem) {
+      main { margin-top: 1.4rem; }
+      .building-fields { grid-template-columns: minmax(0, 1fr); }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #chart { height: 255px; }
+    }
+    @media (max-width: 25rem) { fieldset { grid-template-columns: minmax(0, 1fr); } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Household grid import</h1>
+      <p>ResStock demand with a representative 4 kW Fort Collins rooftop system.</p>
+    </header>
+    <form id="filters">
+      <fieldset disabled>
+        <div class="building-fields">
+          <label>Search buildings
+            <input type="search" id="building-search" placeholder="e.g. detached 2000s natural gas"
+                   autocomplete="off" aria-describedby="building-matches">
+          </label>
+          <label>Building
+            <select id="building" required aria-describedby="building-matches">
+              <option value="all">All buildings</option>
+            </select>
+          </label>
+          <p id="building-matches" role="status"></p>
+        </div>
+        <label>Simulation date <input type="date" id="day" required></label>
+        <button type="submit">Show day</button>
+        <button type="button" id="peak">Most productive day</button>
+      </fieldset>
+    </form>
+    <p id="status" role="status">Loading simulation…</p>
+    <section class="chart-panel" aria-labelledby="chart-heading">
+      <div class="chart-heading">
+        <h2 id="chart-heading">Hourly energy</h2>
+        <p id="scope"></p>
+      </div>
+      <dl class="metrics">
+        <div class="metric"><dt>Grid import without solar</dt><dd id="total-before">—</dd></div>
+        <div class="metric"><dt>Grid import with solar</dt><dd id="total-after">—</dd></div>
+        <div class="metric"><dt>Solar generation</dt><dd id="total-solar">—</dd></div>
+        <div class="metric"><dt>Excess solar</dt><dd id="total-excess">—</dd></div>
+      </dl>
+      <ul class="legend" aria-label="Chart series">
+        <li><span class="before" aria-hidden="true"></span>Import without solar</li>
+        <li><span class="after" aria-hidden="true"></span>Import with solar</li>
+        <li><span class="excess" aria-hidden="true"></span>Excess solar</li>
+      </ul>
+      <svg id="chart" role="img" tabindex="0" aria-label="Hourly grid import and excess solar. Use the arrow keys to inspect an hour."></svg>
+      <p id="inspection" aria-live="off">Hover over the chart or use the arrow keys to inspect an hour.</p>
+    </section>
+    <footer>All buildings sums the scenarios as if every simulated building received the rooftop system. Excess solar is reported separately with zero export credit.</footer>
+  </main>
+  <script>
+    const form = document.getElementById("filters");
+    const fieldset = form.querySelector("fieldset");
+    const buildingSearch = document.getElementById("building-search");
+    const buildingSelect = document.getElementById("building");
+    const buildingMatches = document.getElementById("building-matches");
+    const dayInput = document.getElementById("day");
+    const peak = document.getElementById("peak");
+    const status = document.getElementById("status");
+    const scope = document.getElementById("scope");
+    const chart = document.getElementById("chart");
+    const inspection = document.getElementById("inspection");
+    const format = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
+    const hourFormat = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Denver", hour: "numeric", minute: "2-digit", timeZoneName: "short",
+    });
+    const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" });
+    const measures = {
+      before: "grid_import_without_solar_kwh",
+      after: "grid_import_with_solar_kwh",
+      solar: "solar_generation_kwh",
+      excess: "excess_solar_kwh",
+    };
+    const series = [
+      // Draw the dashed line over the solid line so both show where imports coincide.
+      { key: measures.after, color: "--after", dash: "" },
+      { key: measures.before, color: "--before", dash: "7 5" },
+      { key: measures.excess, color: "--excess", dash: "2 5" },
+    ];
+    const defaultInspection = inspection.textContent;
+    let hours = [];
+    let selectedHour = null;
+    let buildings = [];
+    let labeledCount = 0;
+    let xPosition;
+    let chartWidth;
+    let cursor;
+
+    async function getJSON(path, params = {}) {
+      const response = await fetch(path + "?" + new URLSearchParams(params));
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      return result;
+    }
+
+    function normalize(text) {
+      return text.toLowerCase().replace(/(\d),(?=\d)/g, "$1").replace(/[^a-z0-9]+/g, " ").trim();
+    }
+
+    function buildingChoice(id, details) {
+      const area = details.floor_area_sqft;
+      const traits = [
+        details.building_type,
+        area && format.format(Number(area)) + " sq ft",
+        details.construction_decade,
+        details.heating_fuel,
+      ].filter(Boolean);
+      const label = traits.length ? [...traits, "ID " + id].join(" · ") : "Building " + id;
+      const searchText = normalize(label + (area ? " sqft square feet" : ""));
+      return { id: String(id), label, searchText };
+    }
+
+    function updateBuildingChoices() {
+      const query = normalize(buildingSearch.value);
+      const words = query ? query.split(" ") : [];
+      const exactId = /^id ([0-9]+)$/.exec(query);
+      const matches = buildings.filter(building => exactId
+        ? building.id === exactId[1]
+        : words.every(word => building.searchText.includes(word))
+      );
+      const previous = buildingSelect.value;
+      const choices = matches.map(building => new Option(building.label, building.id));
+      if (!query) {
+        choices.unshift(new Option("All buildings", "all"));
+      } else if (matches.length !== 1) {
+        choices.unshift(new Option(matches.length ? "Choose a matching building" : "No matching buildings", ""));
+      }
+      buildingSelect.replaceChildren(...choices);
+      if (choices.some(option => option.value === previous)) buildingSelect.value = previous;
+      buildingMatches.textContent = query
+        ? format.format(matches.length) + " matching " + (matches.length === 1 ? "building" : "buildings")
+        : "Search by type, square footage, decade, heating fuel, or ID.";
+      if (labeledCount < buildings.length) {
+        buildingMatches.textContent += " Buildings without metadata appear by ID.";
+      }
+    }
+
+    function svgElement(tag, attributes, label) {
+      const item = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      for (const [name, value] of Object.entries(attributes)) item.setAttribute(name, value);
+      if (label !== undefined) item.textContent = label;
+      chart.append(item);
+      return item;
+    }
+
+    function inspect(index) {
+      selectedHour = index;
+      if (!cursor || hours.length === 0) return;
+      cursor.setAttribute("visibility", index === null ? "hidden" : "visible");
+      if (index === null) {
+        inspection.textContent = defaultInspection;
+        return;
+      }
+      const row = hours[index];
+      cursor.setAttribute("x1", xPosition(index));
+      cursor.setAttribute("x2", xPosition(index));
+      inspection.textContent = [
+        hourFormat.format(new Date(row.hour_start_mountain)),
+        "Before " + format.format(row[measures.before]) + " kWh",
+        "After " + format.format(row[measures.after]) + " kWh",
+        "Excess " + format.format(row[measures.excess]) + " kWh",
+      ].join(" · ");
+    }
+
+    function drawChart() {
+      if (hours.length === 0) return;
+      chartWidth = chart.clientWidth;
+      const height = chart.clientHeight;
+      if (chartWidth === 0 || height === 0) return;
+      chart.replaceChildren();
+      chart.setAttribute("viewBox", "0 0 " + chartWidth + " " + height);
+      const left = chartWidth < 450 ? 51 : 66;
+      const right = chartWidth - 14;
+      const top = 26;
+      const bottom = height - 43;
+      const maximum = Math.max(0, ...hours.flatMap(row => series.map(line => row[line.key])));
+      const rawStep = maximum > 0 ? maximum / 4 : 1;
+      const power = 10 ** Math.floor(Math.log10(rawStep));
+      const magnitude = rawStep / power;
+      const tick = (magnitude <= 1 ? 1 : magnitude <= 2 ? 2 : magnitude <= 5 ? 5 : 10) * power;
+      const ceiling = tick * Math.max(1, Math.ceil(maximum / tick));
+      const y = value => bottom - (bottom - top) * value / ceiling;
+      xPosition = index => left + (right - left) * index / Math.max(1, hours.length - 1);
+      const text = { fill: "var(--muted)", "font-size": 12 };
+      svgElement("text", { x: left, y: 14, ...text }, "kWh per hour");
+      for (let index = 0; index <= Math.round(ceiling / tick); index++) {
+        const value = index * tick;
+        const level = y(value);
+        svgElement("line", { x1: left, x2: right, y1: level, y2: level, stroke: "var(--border)" });
+        svgElement("text", { x: left - 8, y: level + 4, "text-anchor": "end", ...text }, format.format(value));
+      }
+      const interval = chartWidth < 500 ? 6 : 4;
+      hours.forEach((row, index) => {
+        const hour = Number(row.hour_start_mountain.slice(11, 13));
+        if (hour % interval !== 0) return;
+        svgElement("text", {
+          x: xPosition(index), y: bottom + 19, "text-anchor": "middle", ...text,
+        }, row.hour_start_mountain.slice(11, 16));
+      });
+      svgElement("text", {
+        x: (left + right) / 2, y: height - 3, "text-anchor": "middle", ...text,
+      }, "Mountain Time");
+      for (const line of series) {
+        const points = hours.map((row, index) => xPosition(index) + "," + y(row[line.key])).join(" ");
+        svgElement("polyline", {
+          points, fill: "none", stroke: "var(" + line.color + ")", "stroke-width": 2.5,
+          "stroke-dasharray": line.dash, "stroke-linejoin": "round",
+        });
+      }
+      cursor = svgElement("line", { y1: top, y2: bottom, stroke: "var(--muted)", "pointer-events": "none" });
+      inspect(selectedHour);
+    }
+
+    function showDay(result, building, day) {
+      hours = result.hours;
+      selectedHour = null;
+      const label = building === "all"
+        ? "All " + buildings.length + " buildings"
+        : buildings.find(choice => choice.id === building).label;
+      scope.textContent = label + " · " + dateFormat.format(new Date(day + "T00:00:00Z"));
+      for (const [label, measure] of Object.entries(measures)) {
+        const sum = hours.reduce((total, row) => total + row[measure], 0);
+        document.getElementById("total-" + label).textContent = format.format(sum) + " kWh";
+      }
+      drawChart();
+    }
+
+    async function update(usePeak) {
+      if (!buildingSelect.reportValidity()) return;
+      const building = buildingSelect.value;
+      let day = dayInput.value;
+      fieldset.disabled = true;
+      status.dataset.error = "false";
+      status.textContent = usePeak ? "Finding the highest-generation day…" : "Loading hourly results…";
+      try {
+        if (usePeak) day = (await getJSON("/api/most-productive-day", { building })).day;
+        showDay(await getJSON("/api/day", { building, date: day }), building, day);
+        dayInput.value = day;
+        status.textContent = usePeak ? "Showing the day with the highest total solar generation." : "";
+      } catch (error) {
+        status.dataset.error = "true";
+        status.textContent = error.message;
+      } finally {
+        fieldset.disabled = false;
+      }
+    }
+
+    buildingSearch.addEventListener("input", updateBuildingChoices);
+    form.addEventListener("submit", event => { event.preventDefault(); update(false); });
+    peak.addEventListener("click", () => update(true));
+    chart.addEventListener("pointermove", event => {
+      if (hours.length === 0 || !xPosition) return;
+      const bounds = chart.getBoundingClientRect();
+      const position = (event.clientX - bounds.left) * chartWidth / bounds.width;
+      const first = xPosition(0);
+      const last = xPosition(hours.length - 1);
+      const index = hours.length === 1 ? 0 : Math.round(
+        Math.max(0, Math.min(1, (position - first) / (last - first))) * (hours.length - 1)
+      );
+      inspect(index);
+    });
+    chart.addEventListener("pointerleave", () => inspect(null));
+    chart.addEventListener("keydown", event => {
+      if (!["ArrowLeft", "ArrowRight"].includes(event.key) || hours.length === 0) return;
+      event.preventDefault();
+      const next = selectedHour === null ? 0 : selectedHour + (event.key === "ArrowRight" ? 1 : -1);
+      inspect(Math.max(0, Math.min(hours.length - 1, next)));
+    });
+    new ResizeObserver(drawChart).observe(chart);
+
+    getJSON("/api/metadata").then(metadata => {
+      labeledCount = Object.keys(metadata.building_details).length;
+      buildings = metadata.buildings.map(id => buildingChoice(id, metadata.building_details[id] || {}));
+      updateBuildingChoices();
+      dayInput.min = metadata.first_day;
+      dayInput.max = metadata.last_day;
+      dayInput.value = metadata.first_day;
+      update(false);
+    }).catch(error => {
+      status.dataset.error = "true";
+      status.textContent = error.message;
+    });
+  </script>
+</body>
+</html>
