@@ -1,6 +1,6 @@
 # Data Inventory and Data-Management Plan
 
-The demand pilot uses ResStock. Its solar and emissions smoke check uses synthetic inputs. A separate script prepares PVWatts exports for the Fort Collins rooftop scenario. Census/ACS remains a planned input. Solar-to-Grid, EPA CAMPD, EIA-930, and Cambium are candidate reference or emissions sources. The project has yet to select its emissions methodology.
+The project uses ResStock for simulated demand, PVWatts for a representative Fort Collins rooftop profile, and Census ACS for Larimer County housing context. The demand pilot's smoke check uses synthetic solar and emissions inputs. Solar-to-Grid, EPA CAMPD, EIA-930, and Cambium are candidate sources. The project has yet to adopt an emissions source or methodology.
 
 ## Storage and API keys
 
@@ -9,14 +9,34 @@ Use the repository-relative locations below for a new setup, or point the script
 | Source | Storage for a new setup | Personal API key |
 |---|---|---|
 | ResStock | `data/raw/resstock/` | None for public OEDI downloads |
-| Census ACS | `data/raw/census/` | `CENSUS_API_KEY` for the Census Data API. Public Summary File downloads require no key. |
-| PVWatts V8 | `data/raw/pvwatts/` | `PVWATTS_API_KEY` from the NLR Developer Network |
+| Census ACS | `data/raw/census/` | `CENSUS_API_KEY` for the Census Data API. Browser table exports and public Summary Files require no key. |
+| PVWatts V8 | `data/raw/pvwatts/` | `PVWATTS_API_KEY` from the NLR Developer Network for direct API calls. Browser CSV exports require no key. |
 | Solar-to-Grid | `data/raw/solar-to-grid/` | None for OEDI downloads |
 | EPA CAMPD | `data/raw/emissions/campd/` | `CAMPD_API_KEY` for direct CAM API calls. Browser downloads require no personal key. |
 | EIA-930 | `data/raw/eia930/` | `EIA_API_KEY` for direct EIA API calls. Grid Monitor file downloads require no key. |
 | Cambium | `data/raw/emissions/cambium/` | None for Scenario Viewer downloads |
 
 The variable names are for local use and documentation. The repository currently has no API clients. Keep keys in your shell environment or an ignored `.env` file. Omit them from Git, request logs, and cached responses.
+
+## Reproduce the shared dataset
+
+Use the repository's scripts and the same input files as the project run. 
+
+| Input | Where to place it | Needed for |
+|---|---|---|
+| Four roof-mounted PVWatts CSVs | `data/PVWATTS/Roof Mount/` in the repository | Build the representative solar profile |
+| Complete `resstock-all-larimer-hourly/` Parquet directory | `../DATA_for_project/resstock-all-larimer-hourly/` | Join demand and solar without downloading the 15-minute profiles |
+| Colorado baseline metadata CSV | `../DATA_for_project/CO_baseline_metadata_and_annual_results.csv` | Select the 382 detached building profiles |
+| B25024 and S2504 Census CSVs | `../DATA_for_project/Census Data/` | Reproduce Larimer County housing-stock estimates |
+
+With the shared files, run [the PVWatts builder](#prepare-the-fort-collins-rooftop-profile), then [the ResStock join](#join-2018-demand-and-rooftop-solar). Both scripts can run from local inputs without API keys. The project run produced these results.
+
+| Output | Expected result | Size in the project run |
+|---|---|---:|
+| `data/processed/pvwatts/fort-collins-rooftop-hourly.csv` | 8,760 hours and 5,867.45 kWh for one 4 kW system | 797,232 bytes |
+| `data/processed/resstock-pvwatts-2018/` | 5,019,480 rows across 573 simulated buildings | 43,988,237 bytes of Parquet |
+
+Share the data archive separately from Git. Keep the source attribution and usage terms below with the inputs.
 
 ## Dataset inventory
 
@@ -78,13 +98,41 @@ python scripts/resstock_pilot.py \
   --test-start 2018-10-01
 ```
 
-Before comparing Random Forest and LSTM, validate the full 382-profile cohort and freeze a chronological train/validation/test split.
+To rebuild the complete hourly Parquet input from the downloaded 15-minute files, use the same pilot script with `--all-larimer`. With the download layout above, run:
+
+```bash
+SPARK_LOCAL_IP=127.0.0.1 \
+PYSPARK_SUBMIT_ARGS='--master local[2] --conf spark.sql.shuffle.partitions=32 pyspark-shell' \
+.venv/bin/python scripts/resstock_pilot.py \
+  data/raw/resstock/larimer_baseline \
+  ../DATA_for_project/resstock-all-larimer-hourly \
+  --metadata data/raw/resstock/CO_baseline_metadata_and_annual_results.csv \
+  --all-larimer \
+  --test-start 2018-10-01
+```
+
+Create the output at a fresh path. Use the 382 detached profiles for the initial placement comparison and freeze a chronological train/validation/test split before comparing models.
 
 ### 2. U.S. Census / American Community Survey
 
-ACS tract, place, or other area estimates provide housing context. The planned geography is Fort Collins city, Colorado. A starting point is the 2024 ACS 5-year Detailed Tables with `B25002` (occupancy), `B25003` (tenure), and `B25024` (units in structure). Retain estimates, margins of error, and geographic IDs. The single-family detached and owner-occupied counts come from different tables. They do not by themselves establish how many units meet both criteria.
+The project uses the 2024 ACS 5-year estimates (2020–2024) for Larimer County, Colorado, county FIPS `08069`. The area-level estimates provide housing context for the simulated ResStock cohort. The hourly demand and solar join uses building and time keys only.
 
-**Download and size.** Request a [Census Data API key](https://api.census.gov/data/key_signup.html). Use the [2024 ACS 5-year API](https://www.census.gov/data/developers/data-sets/acs-5year/2024.html) at `/data/2024/acs/acs5`, pass the key in `key`, and request place `27425` within Colorado (`state:08`). The API returns a JSON array with a header row. Allow a few KB for one place and a small variable selection. For a keyless download, use the [2024 ACS Summary File](https://www.census.gov/programs-surveys/acs/data/summary-file.2024.html). Each detailed table is a delimited `.dat` file covering multiple geographies. For example, the [5-year file index](https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/) lists the occupancy table `acsdt5y2024-b25002.dat` at about 22 MB. The final ACS vintage and variable list are pending.
+| Table | CSV export in `../DATA_for_project/Census Data/` | Size |
+|---|---|---:|
+| B25024, Units in Structure | `ACSDT5Y2024.B25024-2026-11-15T213828.csv` | 503 bytes |
+| S2504, Physical Housing Characteristics for Occupied Housing Units | `ACSST5Y2024.S2504-2026-11-15T213602.csv` | 6,520 bytes |
+
+| Housing measure | Table and field | Estimate | Margin of error |
+|---|---|---:|---:|
+| All single-family detached units, including vacant units | B25024, `1, detached` | 106,043 | ±1,351 |
+| Occupied single-family detached units | S2504, `Units in Structure → 1, detached → Occupied housing units` | 99,115 | ±1,273 |
+| Owner-occupied single-family detached units | S2504, `Units in Structure → 1, detached → Owner-occupied housing units` | 84,395 | ±1,206 |
+
+Use the owner-occupied detached count as countywide housing-stock context for the rooftop placement scenario. Roof suitability requires a separate assumption. A city-only scenario requires a separate Fort Collins city export.
+
+**Download.** At [data.census.gov](https://data.census.gov/), search for B25024 and S2504. For each table, choose **2024 ACS 5-Year Estimates** and filter the geography to **Larimer County, Colorado**. Export the displayed table as CSV and keep the estimates and margins of error. The browser downloads require no key and include the geography in the column labels. The export filename can vary by download timestamp.
+
+**API alternative.** For JSON, [request a Census Data API key](https://api.census.gov/data/key_signup.html) and pass it in the `key` query parameter. Use `for=county:069` and `in=state:08`. Use `/data/2024/acs/acs5` for B25024 and `/data/2024/acs/acs5/subject` for S2504. [B25024 variable definitions](https://api.census.gov/data/2024/acs/acs5/groups/B25024.html) · [S2504 variable definitions](https://api.census.gov/data/2024/acs/acs5/subject/groups/S2504.html)
 
 **Use and citation.** Credit the Census Bureau for its source data. The API terms call for an attribution notice in applications, prohibit implying Census Bureau endorsement, and prohibit using the data to identify survey respondents. Use ACS at the area level when comparing with simulated households. [Census API terms](https://www.census.gov/data/developers/about/terms-of-service.html) · [Census citation guidance](https://www.census.gov/about/policies/citation.html)
 
@@ -94,10 +142,19 @@ PVWatts provides modeled hourly solar production for a representative installati
 
 #### Prepare the Fort Collins rooftop profile
 
-In the [PVWatts calculator](https://pvwatts.nlr.gov/), use **Results → Hourly** to export each location. The browser export requires no API key. From the repository root, run:
+In the [PVWatts calculator](https://pvwatts.nlr.gov/), run the four grid locations below with the rooftop settings above, a DC-to-AC ratio of 1.2, and inverter efficiency of 96%. Use **Results → Hourly** to export each location. Use the shared CSV exports for an exact rerun of the project profile. The browser export requires no API key.
+
+| Export | NSRDB grid cell latitude, longitude | Size |
+|---|---|---:|
+| `pvwatts_hourly_FCRoof_1.csv` | 40.61, −105.10 | 604,245 bytes |
+| `pvwatts_hourly_FCRoof_2.csv` | 40.61, −105.06 | 602,346 bytes |
+| `pvwatts_hourly_FCRoof_3.csv` | 40.57, −105.10 | 602,803 bytes |
+| `pvwatts_hourly_FCRoof_4.csv` | 40.57, −105.06 | 599,416 bytes |
+
+From the repository root, run with the same Python environment as the join:
 
 ```bash
-python3 scripts/build_pvwatts_profile.py \
+.venv/bin/python scripts/build_pvwatts_profile.py \
   "data/PVWATTS/Roof Mount"/pvwatts_hourly_FCRoof_{1,2,3,4}.csv \
   --output data/processed/pvwatts/fort-collins-rooftop-hourly.csv
 ```
@@ -110,7 +167,14 @@ PVWatts source hours use local standard time, which is UTC−07:00 for these exp
 
 #### Join 2018 demand and rooftop solar
 
-Use Java 17 and PySpark 4.0.1 in the project's Python environment. If the environment has PySpark 3.0.x and the legacy `pyspark-stubs` package, remove those stubs before upgrading. PySpark 4.0.1 includes its own type hints.
+Use Java 17 and PySpark 4.0.1. For a fresh checkout on macOS or Linux, create the Python environment and install the pinned Spark version:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install 'pyspark==4.0.1'
+```
+
+For an existing environment with PySpark 3.0.x and the legacy `pyspark-stubs` package, remove those stubs before upgrading. PySpark 4.0.1 includes its own type hints.
 
 ```bash
 .venv/bin/python -m pip uninstall -y pyspark-stubs
