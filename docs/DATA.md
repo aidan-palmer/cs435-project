@@ -10,30 +10,31 @@ Use the repository-relative locations below for a new setup, or point the script
 |---|---|---|
 | ResStock | `data/raw/resstock/` | None for public OEDI downloads |
 | Census ACS | `data/raw/census/` | `CENSUS_API_KEY` for the Census Data API. Browser table exports and public Summary Files require no key. |
-| PVWatts V8 | `data/raw/pvwatts/` | `PVWATTS_API_KEY` from the NLR Developer Network for direct API calls. Browser CSV exports require no key. |
+| PVWatts V8 | `data/raw/pvwatts/cache/` for API responses | `PVWATTS_API_KEY` for uncached API requests. Cached responses and browser CSVs require no key. |
 | Solar-to-Grid | `data/raw/solar-to-grid/` | None for OEDI downloads |
 | EPA CAMPD | `data/raw/emissions/campd/` | `CAMPD_API_KEY` for direct CAM API calls. Browser downloads require no personal key. |
 | EIA-930 | `data/raw/eia930/` | `EIA_API_KEY` for direct EIA API calls. Grid Monitor file downloads require no key. |
 | Cambium | `data/raw/emissions/cambium/` | None for Scenario Viewer downloads |
 
-The variable names are for local use and documentation. The repository currently has no API clients. Keep keys in your shell environment or an ignored `.env` file. Omit them from Git, request logs, and cached responses.
+The PVWatts builder reads `PVWATTS_API_KEY` from the environment when downloading a missing response. Keep API keys in your shell or IDE environment and out of Git, request logs, and cached responses.
 
 ## Reproduce the shared dataset
 
-Use the repository's scripts and the same input files as the project run. 
+Use the repository's scripts and the same input files as the project run. The PVWatts JSON cache is available on the google drive.
 
 | Input | Where to place it | Needed for |
 |---|---|---|
-| Four roof-mounted PVWatts CSVs | `data/PVWATTS/Roof Mount/` in the repository | Build the representative solar profile |
+| Four PVWatts JSON responses from `raw/pvwatts/cache/` on the google drive | `data/raw/pvwatts/cache/` in the repository | Rebuild the representative solar profile without an API key |
+| Four roof-mounted PVWatts CSVs | `data/PVWATTS/Roof Mount/` in the repository | Alternative input for the solar profile |
 | Complete `resstock-all-larimer-hourly/` Parquet directory | `../DATA_for_project/resstock-all-larimer-hourly/` | Join demand and solar without downloading the 15-minute profiles |
 | Colorado baseline metadata CSV | `../DATA_for_project/CO_baseline_metadata_and_annual_results.csv` | Select the 382 detached building profiles |
 | B25024 and S2504 Census CSVs | `../DATA_for_project/Census Data/` | Reproduce Larimer County housing-stock estimates |
 
-With the shared files, run [the PVWatts builder](#prepare-the-fort-collins-rooftop-profile), then [the ResStock join](#join-2018-demand-and-rooftop-solar). Both scripts can run from local inputs without API keys. The project run produced these results.
+With the shared files, [rebuild the PVWatts profile from the cache](#retrieve-and-cache-the-pvwatts-v8-profile), then [run the ResStock join](#join-2018-demand-and-rooftop-solar). Both scripts can run from local inputs without API keys. The project run produced these results.
 
 | Output | Expected result | Size in the project run |
 |---|---|---:|
-| `data/processed/pvwatts/fort-collins-rooftop-hourly.csv` | 8,760 hours and 5,867.45 kWh for one 4 kW system | 797,232 bytes |
+| `data/processed/pvwatts/fort-collins-rooftop-hourly-api.csv` | 8,760 hours and 5,867.45 kWh for one 4 kW system | 797,232 bytes |
 | `data/processed/resstock-pvwatts-2018/` | 5,019,480 rows across 573 simulated buildings | 43,988,237 bytes of Parquet |
 
 Share the data archive separately from Git. Keep the source attribution and usage terms below with the inputs.
@@ -140,6 +141,23 @@ Use the owner-occupied detached count as countywide housing-stock context for th
 
 PVWatts provides modeled hourly solar production for a representative installation. The Fort Collins rooftop scenario averages four weather grid cells, with each run using a 4 kW DC system, standard modules, a fixed roof mount, 20° tilt, 180° azimuth, and 14.08% system losses. The four source CSVs are in `data/PVWATTS/Roof Mount/` and total 2,408,810 bytes.
 
+#### Retrieve and cache the PVWatts V8 profile
+
+The API mode uses the same four Fort Collins coordinates listed below. Each request uses NSRDB typical-year weather, standard monofacial modules, a 4 kW DC fixed roof mount, 20° tilt, 180° azimuth, 14.08% losses, a DC-to-AC ratio of 1.2, 96% inverter efficiency, and albedo from the weather file. It requests hourly results and gives the four locations equal weight.
+
+Download the entire `raw/pvwatts/cache/` folder from the google drive. Place its four JSON files directly under `data/raw/pvwatts/cache/` in your checkout and keep their filenames. With the shared cache in place, run from the repository root without an API key:
+
+```bash
+.venv/bin/python scripts/build_pvwatts_profile.py --from-api \
+  --output data/processed/pvwatts/fort-collins-rooftop-hourly-api.csv
+```
+
+If a response is missing or you want a fresh snapshot, [request an NLR developer key](https://developer.nlr.gov/signup/) and set `PVWATTS_API_KEY` in your shell or environment. The builder saves each validated response as JSON under `data/raw/pvwatts/cache/`. Each file records the key-free request, UTC retrieval time, model version, and weather metadata. The lookup uses the endpoint and full request parameters. A cache hit reuses the stored response without contacting the API. Keep the four JSON files together for an exact rerun, and use `--cache-dir` with a new directory when you want to collect a fresh snapshot. Use a new output filename each time.
+
+The API provides `outputs.ac` in watts. The builder verifies 8,760 hourly values per location and the fixed UTC−07:00 source offset, then averages each hour and converts the power to kWh for the one-hour interval. The output carries Colorado Mountain Time with DST offsets, fixed MST, and UTC. The 2018 calendar aligns the typical-year solar profile with the demand pilot. Use the API CSV as the solar input to [the ResStock join](#join-2018-demand-and-rooftop-solar).
+
+The verified run used PVWatts 8.5.0 and NSRDB PSM V3 GOES tmy-2020 3.2.0. It produced 8,760 rows totaling 5,867.45 kWh for a representative 4 kW system. The four JSON files total 1,968,633 bytes in this run. [PVWatts V8 request and response reference](https://developer.nlr.gov/docs/solar/pvwatts/v8/) · [API key usage](https://developer.nlr.gov/docs/api-key/)
+
 #### Prepare the Fort Collins rooftop profile
 
 In the [PVWatts calculator](https://pvwatts.nlr.gov/), run the four grid locations below with the rooftop settings above, a DC-to-AC ratio of 1.2, and inverter efficiency of 96%. Use **Results → Hourly** to export each location. Use the shared CSV exports for an exact rerun of the project profile. The browser export requires no API key.
@@ -188,13 +206,11 @@ SPARK_LOCAL_IP=127.0.0.1 \
 PYSPARK_SUBMIT_ARGS='--master local[2] --conf spark.sql.shuffle.partitions=8 pyspark-shell' \
 .venv/bin/python scripts/join_resstock_pvwatts.py \
   ../DATA_for_project/resstock-all-larimer-hourly \
-  data/processed/pvwatts/fort-collins-rooftop-hourly.csv \
+  data/processed/pvwatts/fort-collins-rooftop-hourly-api.csv \
   data/processed/resstock-pvwatts-2018
 ```
 
 The join accepts complete 2018 hourly Parquet from the ResStock pilot and writes one Parquet record per building and UTC hour. It keeps the original EST label for traceability and the offset-aware Colorado timestamp for reporting. Each building gets the same representative 4 kW rooftop profile. `solar_generation_kwh` is a per-installation scenario value. Apply the placement selection before summing solar across buildings. Filter to the 382 detached profiles using Colorado baseline metadata and `building_id` when running the initial placement experiment.
-
-**Download and size.** Get an [NLR Developer Network key](https://developer.nlr.gov/signup/). Call `https://developer.nlr.gov/api/pvwatts/v8.json` with the system inputs, `timeframe=hourly`, and the key in the `X-Api-Key` header. Expect JSON (XML is also available), with hourly AC power in `outputs.ac` in watts and weather source and timezone in `station_info`. An uncompressed hourly JSON response is typically on the order of hundreds of KB per request, depending on the returned arrays. Save a sanitized response with the request inputs, model version, weather metadata, and retrieval date. The response can echo `inputs.api_key`. Divide hourly AC watts by 1,000 and multiply by the one-hour interval to get kWh. [PVWatts V8 request and response reference](https://developer.nlr.gov/docs/solar/pvwatts/v8/) · [API key usage](https://developer.nlr.gov/docs/api-key/)
 
 **Use and citation.** NLR permits use of its API data subject to its terms, including restrictions on using DOE, NLR, or Alliance names to imply endorsement. The default developer limit is 1,000 requests per hour per key across NLR APIs. [Developer Network terms](https://developer.nlr.gov/terms/) · [Rate limits](https://developer.nlr.gov/docs/rate-limits/)
 

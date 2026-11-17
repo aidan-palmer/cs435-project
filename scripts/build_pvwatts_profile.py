@@ -1,4 +1,4 @@
-"""Average four Fort Collins rooftop PVWatts exports on Colorado's clock."""
+"""Build the Fort Collins rooftop profile from PVWatts V8 or four CSV exports."""
 
 import argparse
 import csv
@@ -7,6 +7,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from statistics import fmean
 from zoneinfo import ZoneInfo
+
+from pvwatts_api import DEFAULT_CACHE_DIR, HOURS_PER_YEAR, get_fort_collins_profiles
 
 
 MOUNTAIN_STANDARD = timezone(timedelta(hours=-7))
@@ -46,26 +48,41 @@ def read_profile(path, hours):
     return location, settings, power
 
 
+def read_csv_profiles(exports, hours):
+    profiles = [read_profile(path, hours) for path in exports]
+    if len({location for location, _, _ in profiles}) != len(profiles):
+        raise ValueError("The four exports must use distinct weather locations")
+    if any(settings != profiles[0][1] for _, settings, _ in profiles):
+        raise ValueError("The PV system settings must match across the four exports")
+    return [power for _, _, power in profiles]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("exports", nargs=4, type=Path, help="Four hourly rooftop CSVs")
+    parser.add_argument("exports", nargs="*", type=Path, help="Four hourly rooftop CSVs")
+    parser.add_argument("--from-api", action="store_true", help="Use cached or fresh PVWatts V8 responses")
+    parser.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE_DIR, help="PVWatts API response directory")
     parser.add_argument("--output", required=True, type=Path, help="Path for the new CSV")
     args = parser.parse_args()
+    if args.from_api and args.exports:
+        parser.error("Choose --from-api or four CSV exports")
+    if not args.from_api and len(args.exports) != 4:
+        parser.error("Provide four hourly rooftop CSVs or use --from-api")
+    if args.output.exists():
+        parser.error(f"Output already exists: {args.output}")
 
     # Place the typical-year profile on the ResStock pilot calendar.
     start = datetime(2018, 1, 1, tzinfo=MOUNTAIN_STANDARD)
-    hours = [start + timedelta(hours=index) for index in range(8760)]
+    hours = [start + timedelta(hours=index) for index in range(HOURS_PER_YEAR)]
 
     try:
-        profiles = [read_profile(path, hours) for path in args.exports]
-        if len({location for location, _, _ in profiles}) != len(profiles):
-            raise ValueError("The four exports must use distinct weather locations")
-        if any(settings != profiles[0][1] for _, settings, _ in profiles):
-            raise ValueError("The PV system settings must match across the four exports")
+        if args.from_api:
+            power_by_location = get_fort_collins_profiles(args.cache_dir)
+        else:
+            power_by_location = read_csv_profiles(args.exports, hours)
     except (OSError, ValueError, IndexError) as error:
         parser.error(str(error))
 
-    power_by_location = [power for _, _, power in profiles]
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("x", encoding="utf-8", newline="") as output:
         writer = csv.writer(output)
