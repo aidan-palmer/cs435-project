@@ -20,7 +20,7 @@ The variable names are for local use and documentation. The repository currently
 
 ## Reproduce the shared dataset
 
-Use the repository's scripts and the same input files as the project run. A team input archive can contain the paths below. This layout keeps the existing run commands usable from each teammate's repository root.
+Use the repository's scripts and the same input files as the project run. 
 
 | Input | Where to place it | Needed for |
 |---|---|---|
