@@ -127,6 +127,26 @@ Suggested first issue set:
 15. **Add runtime/scaling benchmark**
 16. **Create final reproducibility script/instructions**
 
+## Backlog
+
+### Simulate home battery storage
+
+Start this as a separate issue after the baseline → forecast → simulation → allocation pipeline runs end to end. Compare PV-only and PV-plus-battery scenarios for the same simulated buildings and rooftop systems. For a motivating example, building 532866 had 18.23 kWh of excess solar and still imported 4.25 kWh on May 30, 2018. The hourly timing determines how much storage could offset.
+
+Use the [hourly grid-import output](ARCHITECTURE.md#6-grid-import-simulation). Group by `building_id` and process consecutive `hour_start_utc` records in order. Carry battery state of charge across days. Set usable capacity (kWh), charge and discharge limits (kW), charge and discharge efficiencies, and initial state of charge explicitly. Start the baseline storage run empty and use PV surplus as the charging source.
+
+1. Serve demand with same-hour solar as in the PV-only case.
+2. Charge from `excess_solar_kwh`, limited by available surplus, the hourly charge limit, and the remaining usable capacity after charging losses.
+3. Discharge to cover `grid_import_with_solar_kwh`, limited by remaining demand, the hourly discharge limit, and the energy the battery can deliver after discharge losses.
+4. Update state of charge. Record hourly charge, energy delivered from the battery, end-of-hour state of charge, losses, grid imports with storage, and remaining surplus.
+5. Compare annual grid imports and surplus for PV-only and PV-plus-battery runs. Report ending state of charge and repeat for several capacities. Use annual results to assess storage benefits.
+
+**Acceptance criteria**
+
+- Produce hourly storage results and annual comparisons per building.
+- Preserve energy balance, respect capacity and power limits, and carry state correctly overnight.
+- Add tests for a zero-capacity battery, empty and full states, efficiency losses, power limits, and surplus on one day serving demand the next.
+
 ## Scope Control
 
 Before adding a feature, ask whether it is required to answer the research question.
