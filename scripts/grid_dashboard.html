@@ -132,19 +132,30 @@
     #region-map { height: 510px; margin-top: .8rem; border-radius: .65rem; z-index: 0; background: #e5eced; }
     .scenario-switches label { border-bottom: 3px solid var(--metric-color); padding-bottom: .2rem; }
     .scenario-switches input { accent-color: var(--metric-color); }
-    .metric-values { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-top: .75rem; }
-    .metric-card { min-width: 0; border: 1px solid var(--border); border-left: 4px solid var(--metric-color);
-      border-radius: .5rem; padding: .65rem .75rem; }
-    .metric-card[hidden], #no-scenarios[hidden] { display: none; }
-    .metric-card h3 { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; font-size: .87rem; margin: 0 0 .3rem; }
-    .metric-ramp { width: 3.5rem; height: .65rem; border: 1px solid var(--control-border); }
+    .scenario-switches label[hidden], .bar-group[hidden], #no-scenarios[hidden] { display: none; }
+    .map-comparison { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(15rem, 1fr); gap: 1rem; margin-top: 1rem; }
+    .map-column { min-width: 0; }
+    .map-column h3, .comparison-chart h3 { font-size: 1rem; margin: 0; }
+    #primary-ramp { display: inline-block; width: 4rem; height: .7rem; border: 1px solid var(--control-border); margin-right: .35rem; vertical-align: middle; }
+    #region-map { height: 510px; margin-top: .65rem; }
+    #primary-values { margin-top: .5rem; }
+    .comparison-chart { min-width: 0; padding: .9rem; border: 1px solid var(--border); border-radius: .65rem; }
+    #bar-scale { color: var(--muted); font-size: .78rem; margin: .4rem 0 .8rem; }
+    .bar-group { margin-top: 1rem; }
+    .bar-group h4 { font-size: .82rem; font-weight: 650; margin: 0 0 .4rem; }
+    .comparison-row { display: grid; grid-template-columns: 1fr auto; gap: .15rem .5rem; margin-top: .4rem; font-size: .78rem; }
+    .bar-number { font-variant-numeric: tabular-nums; font-weight: 650; }
+    .bar-track { grid-column: 1 / -1; background: var(--border); height: .65rem; border-radius: .15rem; overflow: hidden; }
+    .bar-fill { height: 100%; background: var(--metric-color); }
     .scenario-values, #overlay-note { font-size: .8rem; color: var(--muted); }
     #overlay-note { margin-top: .6rem; }
     .city-values { margin-top: .75rem; font-size: .85rem; }
-    #no-scenarios { margin-top: 1rem; }
-    @media (max-width: 37rem) {
+    #no-scenarios { margin-top: 1rem; color: var(--muted); font-size: .85rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+    @media (max-width: 42rem) {
+      .map-comparison { grid-template-columns: minmax(0, 1fr); }
       #region-map { height: 400px; }
-      .metric-values { grid-template-columns: minmax(0, 1fr); }
     }
     .map-key { display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; background: #164b81; }
     @media (max-width: 37rem) {
@@ -216,7 +227,16 @@
         <button type="button" id="reset-map" disabled>Reset map view</button>
       </div>
       <div class="heat-controls">
-        <label>Map values
+        <label>Main map metric
+          <select id="main-metric" disabled>
+            <option value="solar">Solar generation</option>
+            <option value="before">Grid import without solar</option>
+            <option value="after">Grid import with solar</option>
+            <option value="reduction">Grid reduction from solar</option>
+            <option value="excess">Excess solar</option>
+          </select>
+        </label>
+        <label>Map and bar values
           <select id="heat-units" disabled>
             <option value="average">Average per simulated building</option>
             <option value="total">Total for simulated buildings</option>
@@ -230,13 +250,13 @@
         </label>
         <button type="button" id="locate-building" disabled>Show building area</button>
       </div>
-      <fieldset class="scenario-switches" aria-label="Visible scenarios">
-        <legend>Show scenarios</legend>
-        <label style="--metric-color:#b45309"><input type="checkbox" id="show-solar" checked> Solar generation</label>
-        <label style="--metric-color:#5b21b6"><input type="checkbox" id="show-before" checked> Grid import without solar</label>
-        <label style="--metric-color:#991b1b"><input type="checkbox" id="show-after" checked> Grid import with solar</label>
-        <label style="--metric-color:#166534"><input type="checkbox" id="show-reduction" checked> Grid reduction from solar</label>
-        <label style="--metric-color:#155e75"><input type="checkbox" id="show-excess" checked> Excess solar</label>
+      <fieldset class="scenario-switches" aria-label="Visible comparison bars">
+        <legend>Show comparison bars</legend>
+        <label id="toggle-solar" style="--metric-color:#b45309"><input type="checkbox" id="show-solar" checked> Solar generation</label>
+        <label id="toggle-before" style="--metric-color:#5b21b6"><input type="checkbox" id="show-before" checked> Grid import without solar</label>
+        <label id="toggle-after" style="--metric-color:#991b1b"><input type="checkbox" id="show-after" checked> Grid import with solar</label>
+        <label id="toggle-reduction" style="--metric-color:#166534"><input type="checkbox" id="show-reduction" checked> Grid reduction from solar</label>
+        <label id="toggle-excess" style="--metric-color:#155e75"><input type="checkbox" id="show-excess" checked> Excess solar</label>
       </fieldset>
       <p id="building-location" role="status">Select a building to highlight its known city or broader census area.</p>
       <div class="time-controls">
@@ -253,40 +273,54 @@
         </div>
         <p id="heat-scope">City maps · waiting for simulation results</p>
       </div>
-      <div class="heat-legend"><span id="heat-range">No heatmap results loaded.</span> · gray = no mapped data
-      </div>
       <div class="map-summary" aria-live="off">
         <p id="map-scope">Choose a simulation day to see its energy summary.</p>
         <p id="summary-grid-reduction">Grid reduction —</p>
         <p id="summary-solar">Solar generation —</p>
       </div>
-      <p id="no-scenarios" hidden>Select at least one scenario to show a map.</p>
-      <div id="region-map" role="region" aria-label="Combined simulation map of Fort Collins and Loveland"
-           aria-describedby="map-note map-status overlay-note"></div>
-      <p id="overlay-note">Each metric has its own color scheme. Diagonal bands keep overlapping metrics visible;
-        select just one metric for a solid heatmap. Bands do not represent different neighborhoods.</p>
-      <div class="metric-values" aria-label="Metric colors and city values">
-        <section id="scenario-solar" class="metric-card" style="--metric-color:#b45309" aria-labelledby="heading-solar">
-          <h3 id="heading-solar"><span class="metric-ramp" style="background:linear-gradient(to right, #fff7bc, #fec44f, #b45309)" aria-hidden="true"></span>Solar generation</h3>
-          <p id="values-solar" class="scenario-values"></p>
+      <div class="map-comparison">
+        <section class="map-column" aria-labelledby="primary-heading">
+          <h3 id="primary-heading">Solar generation</h3>
+          <div class="heat-legend"><span id="primary-ramp" class="metric-ramp" aria-hidden="true"></span>
+            <span id="heat-range">No map results loaded.</span>
+          </div>
+          <div id="region-map" role="region" aria-label="Main metric map of Fort Collins and Loveland"
+               aria-describedby="map-note map-status"></div>
+          <p id="primary-values" class="scenario-values"></p>
         </section>
-        <section id="scenario-before" class="metric-card" style="--metric-color:#5b21b6" aria-labelledby="heading-before">
-          <h3 id="heading-before"><span class="metric-ramp" style="background:linear-gradient(to right, #ede9fe, #a78bfa, #5b21b6)" aria-hidden="true"></span>Grid import without solar</h3>
-          <p id="values-before" class="scenario-values"></p>
-        </section>
-        <section id="scenario-after" class="metric-card" style="--metric-color:#991b1b" aria-labelledby="heading-after">
-          <h3 id="heading-after"><span class="metric-ramp" style="background:linear-gradient(to right, #fee2e2, #f87171, #991b1b)" aria-hidden="true"></span>Grid import with solar</h3>
-          <p id="values-after" class="scenario-values"></p>
-        </section>
-        <section id="scenario-reduction" class="metric-card" style="--metric-color:#166534" aria-labelledby="heading-reduction">
-          <h3 id="heading-reduction"><span class="metric-ramp" style="background:linear-gradient(to right, #dcfce7, #4ade80, #166534)" aria-hidden="true"></span>Grid reduction from solar</h3>
-          <p id="values-reduction" class="scenario-values"></p>
-        </section>
-        <section id="scenario-excess" class="metric-card" style="--metric-color:#155e75" aria-labelledby="heading-excess">
-          <h3 id="heading-excess"><span class="metric-ramp" style="background:linear-gradient(to right, #cffafe, #22d3ee, #155e75)" aria-hidden="true"></span>Excess solar</h3>
-          <p id="values-excess" class="scenario-values"></p>
+        <section class="comparison-chart" aria-labelledby="comparison-heading">
+          <h3 id="comparison-heading">Other metrics by city</h3>
+          <p id="bar-scale">No comparison results loaded.</p>
+          <p id="no-scenarios" hidden>Select a comparison metric to show its bars.</p>
+          <section id="scenario-solar" class="bar-group" style="--metric-color:#b45309" aria-labelledby="heading-solar">
+            <h4 id="heading-solar">Solar generation</h4>
+            <div id="bars-solar"></div>
+            <p id="values-solar" class="sr-only"></p>
+          </section>
+          <section id="scenario-before" class="bar-group" style="--metric-color:#5b21b6" aria-labelledby="heading-before">
+            <h4 id="heading-before">Grid import without solar</h4>
+            <div id="bars-before"></div>
+            <p id="values-before" class="sr-only"></p>
+          </section>
+          <section id="scenario-after" class="bar-group" style="--metric-color:#991b1b" aria-labelledby="heading-after">
+            <h4 id="heading-after">Grid import with solar</h4>
+            <div id="bars-after"></div>
+            <p id="values-after" class="sr-only"></p>
+          </section>
+          <section id="scenario-reduction" class="bar-group" style="--metric-color:#166534" aria-labelledby="heading-reduction">
+            <h4 id="heading-reduction">Grid reduction from solar</h4>
+            <div id="bars-reduction"></div>
+            <p id="values-reduction" class="sr-only"></p>
+          </section>
+          <section id="scenario-excess" class="bar-group" style="--metric-color:#155e75" aria-labelledby="heading-excess">
+            <h4 id="heading-excess">Excess solar</h4>
+            <div id="bars-excess"></div>
+            <p id="values-excess" class="sr-only"></p>
+          </section>
         </section>
       </div>
+      <p id="overlay-note">The map shows the main metric. Bars compare the other selected metrics for each city at the same hour.
+        The map and bars use their own labeled scales, held steady through the day.</p>
       <details class="city-values"><summary>Compare numeric city values</summary>
         <ul id="heat-areas" aria-label="City heatmap values"></ul>
       </details>
@@ -344,7 +378,6 @@
     let cityLayer;
     let selectionLayer;
     let metricRenderer;
-    let patternDefinitions;
     const mapScenarios = [
       {id: "solar", label: "Solar generation", measure: measures.solar, colors: [[255,247,188],[254,196,79],[180,83,9]]},
       {id: "before", label: "Grid import without solar", measure: measures.before, colors: [[237,233,254],[167,139,250],[91,33,182]]},
@@ -363,6 +396,7 @@
     let mapGeography = { features: [] };
     let buildingDetails = {};
     let loadedBuilding = null;
+    const mainMetric = document.getElementById("main-metric");
     const heatUnits = document.getElementById("heat-units");
     const locateBuilding = document.getElementById("locate-building");
     let solarReferencePoints = [];
@@ -451,72 +485,106 @@
       drawHeatmap();
     }
 
+    function mainScenario() {
+      return mapScenarios.find(scenario => scenario.id === mainMetric.value);
+    }
+
     function enabledScenarios() {
-      return mapScenarios.filter(scenario => document.getElementById("show-" + scenario.id).checked);
+      return mapScenarios.filter(scenario => scenario.id !== mainMetric.value
+        && document.getElementById("show-" + scenario.id).checked);
+    }
+
+    function displayedScenarios() {
+      return [mainScenario(), ...enabledScenarios()];
     }
 
     function updateScenarioVisibility() {
       for (const scenario of mapScenarios) {
-        document.getElementById("scenario-" + scenario.id).hidden =
-          !document.getElementById("show-" + scenario.id).checked;
+        const primary = scenario.id === mainMetric.value;
+        document.getElementById("toggle-" + scenario.id).hidden = primary;
+        document.getElementById("show-" + scenario.id).disabled = primary;
+        document.getElementById("scenario-" + scenario.id).hidden = primary
+          || !document.getElementById("show-" + scenario.id).checked;
       }
       document.getElementById("no-scenarios").hidden = enabledScenarios().length > 0;
       drawHeatmap();
     }
 
-    function metricFill(scenario, areaId, color) {
-      if (enabledScenarios().length === 1) return color;
-      const namespace = "http://www.w3.org/2000/svg";
-      const pattern = document.createElementNS(namespace, "pattern");
-      const id = "metric-band-" + scenario.id + "-" + areaId.replace(/[^a-z0-9]/gi, "-");
-      pattern.setAttribute("id", id);
-      pattern.setAttribute("patternUnits", "userSpaceOnUse");
-      pattern.setAttribute("width", "25");
-      pattern.setAttribute("height", "25");
-      pattern.setAttribute("patternTransform", "rotate(-35)");
-      const band = document.createElementNS(namespace, "rect");
-      band.setAttribute("x", "0");
-      band.setAttribute("y", String(mapScenarios.indexOf(scenario) * 5));
-      band.setAttribute("width", "25");
-      band.setAttribute("height", "5");
-      band.setAttribute("fill", color);
-      pattern.append(band);
-      patternDefinitions.append(pattern);
-      return "url(#" + id + ")";
+    function drawComparisonBars(frame, maximum, units) {
+      for (const scenario of mapScenarios) {
+        const group = document.getElementById("bars-" + scenario.id);
+        group.replaceChildren();
+        if (scenario.id === mainMetric.value) continue;
+        for (const feature of mapGeography.features.filter(feature => feature.properties.kind === "place")) {
+          const area = frame.areas.find(row => row.area_id === feature.properties.area_id);
+          const value = heatValue(area, scenario);
+          const row = document.createElement("div");
+          row.className = "comparison-row";
+          row.setAttribute("role", "img");
+          row.setAttribute("aria-label", scenario.label + ", " + areaName(feature) + ": "
+            + (value === null ? "No mapped data" : format.format(value) + " " + units
+              + ", " + area.building_count + " simulated buildings"));
+          const city = document.createElement("span");
+          city.textContent = areaName(feature);
+          const amount = document.createElement("span");
+          amount.className = "bar-number";
+          amount.textContent = value === null ? "No data" : format.format(value);
+          const track = document.createElement("div");
+          track.className = "bar-track";
+          const fill = document.createElement("div");
+          fill.className = "bar-fill";
+          fill.style.width = (maximum > 0 && value !== null ? Math.max(0, Math.min(100, value / maximum * 100)) : 0) + "%";
+          track.append(fill);
+          row.append(city, amount, track);
+          group.append(row);
+        }
+      }
     }
 
     function drawHeatmap() {
       for (const layer of Object.values(metricLayers)) layer.clearLayers();
       if (cityLayer) cityLayer.clearLayers();
-      if (patternDefinitions) patternDefinitions.replaceChildren();
       const rows = document.getElementById("heat-areas");
       rows.replaceChildren();
       const frame = mapFrame();
       const frames = mapDay?.hours || [];
       const daily = mapPeriod.value === "day";
-      heatUnits.disabled = mapPeriod.disabled = !mapDay || mapLoading;
+      mainMetric.disabled = heatUnits.disabled = mapPeriod.disabled = !mapDay || mapLoading;
       mapHour.disabled = playMap.disabled = !mapDay || mapLoading || daily || !frames.length;
       document.getElementById("previous-hour").disabled = mapHour.disabled || mapHourIndex === 0;
       document.getElementById("next-hour").disabled = mapHour.disabled || mapHourIndex >= frames.length - 1;
       mapHourLabel.textContent = mapDay ? mapTimeLabel(frame) : "Waiting for simulation results…";
       mapHourLabel.dataset.instant = frame?.hour_start_mountain || "";
       mapHour.setAttribute("aria-valuetext", mapHourLabel.textContent);
-      for (const scenario of mapScenarios) document.getElementById("values-" + scenario.id).textContent = "";
+      const primary = mainScenario();
+      document.getElementById("primary-heading").textContent = primary.label;
+      document.getElementById("primary-ramp").style.background = "linear-gradient(to right, "
+        + primary.colors.map(color => "rgb(" + color.join(",") + ")").join(",") + ")";
+      for (const scenario of mapScenarios) {
+        document.getElementById("values-" + scenario.id).textContent = "";
+        document.getElementById("bars-" + scenario.id).replaceChildren();
+      }
       if (!mapDay || !frame) {
-        document.getElementById("heat-range").textContent = "No heatmap results loaded.";
-        document.getElementById("heat-scope").textContent = "City overlays unavailable";
+        document.getElementById("heat-range").textContent = "No map results loaded.";
+        document.getElementById("bar-scale").textContent = "No comparison results loaded.";
+        document.getElementById("primary-values").textContent = "";
+        document.getElementById("heat-scope").textContent = "City results unavailable";
         document.getElementById("heat-coverage").textContent = "";
         updateMapSummary();
         return;
       }
-      // Share one scale across all five measures and the entire day, including hidden maps.
       const scaleFrames = daily ? [mapDay] : frames;
-      const maximum = Math.max(0, ...scaleFrames.flatMap(item => item.areas.flatMap(area =>
+      // Fix both scales for the whole day. Hidden bars do not change the bar scale.
+      const primaryMaximum = Math.max(0, ...scaleFrames.flatMap(item =>
+        item.areas.map(area => heatValue(area, primary))));
+      const barMaximum = Math.max(0, ...scaleFrames.flatMap(item => item.areas.flatMap(area =>
         mapScenarios.map(scenario => heatValue(area, scenario)))));
       const interval = daily ? "day" : "hour";
       const units = heatUnits.value === "average" ? "kWh / building / " + interval : "kWh / " + interval;
-      document.getElementById("heat-range").textContent = "0 — " + format.format(maximum)
-        + " " + units + " · same scale for every scenario and hour in this day";
+      document.getElementById("heat-range").textContent = "Map: 0 — " + format.format(primaryMaximum)
+        + " " + units + " · fixed through this day · gray = no mapped data";
+      document.getElementById("bar-scale").textContent = "Bars: 0 — " + format.format(barMaximum)
+        + " " + units + " · one shared scale, fixed through this day";
       document.getElementById("heat-scope").textContent = "All simulated buildings · "
         + dateFormat.format(new Date(mapDay.day + "T00:00:00Z")) + " · " + mapTimeLabel(frame);
       const placed = frame.total_buildings - frame.unmapped.building_count;
@@ -531,20 +599,22 @@
           const text = areaName(feature) + ": " + (value === null ? "No mapped data"
             : format.format(value) + " " + units + " (" + area.building_count + " buildings)");
           labels.push(text);
-          if (!document.getElementById("show-" + scenario.id).checked) return;
-          const row = document.createElement("li");
-          row.textContent = scenario.label + " · " + text;
-          rows.append(row);
-          const layer = metricLayers[scenario.id];
-          if (!layer) return;
+          if (displayedScenarios().includes(scenario)) {
+            const row = document.createElement("li");
+            row.textContent = scenario.label + " · " + text;
+            rows.append(row);
+          }
+          if (scenario !== primary || !metricLayers[scenario.id]) return;
           L.geoJSON(feature, {
             renderer: metricRenderer, interactive: false,
-            style: {stroke: false, fillColor: metricFill(scenario, feature.properties.area_id,
-              heatColor(value, maximum, scenario)), fillOpacity: value === null ? .2 : .8},
-          }).addTo(layer);
+            style: {stroke: false, fillColor: heatColor(value, primaryMaximum, scenario),
+              fillOpacity: value === null ? .2 : .7},
+          }).addTo(metricLayers[scenario.id]);
         });
         document.getElementById("values-" + scenario.id).textContent = labels.join(" · ");
+        if (scenario === primary) document.getElementById("primary-values").textContent = labels.join(" · ");
       }
+      drawComparisonBars(frame, barMaximum, units);
       if (cityLayer) {
         mapGeography.features.filter(feature => feature.properties.kind === "place").forEach(feature => {
           const area = frame.areas.find(row => row.area_id === feature.properties.area_id);
@@ -552,7 +622,7 @@
           const title = document.createElement("strong");
           title.textContent = areaName(feature) + " · " + mapTimeLabel(frame);
           popup.append(title);
-          for (const scenario of enabledScenarios()) {
+          for (const scenario of displayedScenarios()) {
             const line = document.createElement("p");
             const value = heatValue(area, scenario);
             line.textContent = scenario.label + ": " + (value === null ? "No mapped data"
@@ -632,8 +702,6 @@
         regionMap.createPane("metric-areas");
         regionMap.getPane("metric-areas").style.zIndex = 410;
         metricRenderer = L.svg({pane: "metric-areas"}).addTo(regionMap);
-        patternDefinitions = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-        regionMap.getPane("metric-areas").querySelector("svg").prepend(patternDefinitions);
         regionMap.createPane("selected-area");
         regionMap.getPane("selected-area").style.zIndex = 450;
         regionMap.getPane("selected-area").style.pointerEvents = "none";
@@ -647,7 +715,7 @@
         new ResizeObserver(() => regionMap.invalidateSize({pan: false})).observe(document.getElementById("region-map"));
         resetMap.disabled = false;
         resetMap.addEventListener("click", () => regionMap.fitBounds(regionBounds, {animate: false}));
-        mapStatus.textContent = "Use the scenario checkboxes to overlay metrics or view one metric by itself. Click a city for its values.";
+        mapStatus.textContent = "Choose a main metric for the map and comparison metrics for the bars. Click a city for its values.";
         drawReferencePoints();
         updateScenarioVisibility();
         showBuildingArea(buildingSelect.value);
@@ -865,6 +933,7 @@
       }, 700);
     });
     mapPeriod.addEventListener("change", () => { stopPlayback(); drawHeatmap(); });
+    mainMetric.addEventListener("change", updateScenarioVisibility);
     heatUnits.addEventListener("change", drawHeatmap);
     for (const scenario of mapScenarios) {
       document.getElementById("show-" + scenario.id).addEventListener("change", updateScenarioVisibility);
@@ -902,6 +971,7 @@
     });
     new ResizeObserver(drawChart).observe(chart);
 
+    updateScenarioVisibility();
     getJSON("/api/metadata").then(metadata => {
       mapGeography = metadata.map_geography || { features: [] };
       buildingDetails = metadata.building_details;
