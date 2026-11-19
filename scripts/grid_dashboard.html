@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SolarOpt · Grid import</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <style>
     :root {
       color-scheme: light dark;
@@ -32,7 +34,7 @@
     h2 { font-size: 1.15rem; }
     header p, #scope, .unit, #inspection, footer { color: var(--muted); }
     header p { margin-top: .55rem; }
-    form, .chart-panel {
+    form, .chart-panel, .map-panel {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 1rem;
@@ -87,6 +89,68 @@
     #chart { display: block; width: 100%; height: 295px; }
     #chart:focus-visible { outline: 2px solid var(--after); outline-offset: 2px; }
     #inspection { min-height: 2em; font-size: .85rem; font-variant-numeric: tabular-nums; }
+    .map-panel { margin-top: 1rem; }
+    .map-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .map-heading p, #map-note, #map-status { color: var(--muted); font-size: .85rem; }
+    .map-heading p { margin-top: .25rem; }
+    .map-frame { position: relative; margin-top: 1rem; }
+    #region-map { height: 410px; border-radius: .65rem; background: #e5eced; z-index: 0; }
+    .map-summary {
+      position: absolute; bottom: 2.25rem; right: .75rem; z-index: 1;
+      max-width: min(19rem, 65%); padding: .75rem; border-radius: .5rem;
+      background: var(--panel); border: 1px solid var(--border);
+      box-shadow: 0 2px 12px #0002; pointer-events: none;
+    }
+    .map-summary p { font-size: .8rem; }
+    #map-scope { color: var(--muted); }
+    #summary-grid-reduction { font-weight: 650; margin-top: .3rem; }
+    #map-note { margin-top: .75rem; }
+    #map-status { margin-top: .35rem; }
+    .heat-controls { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: .9rem; align-items: end; }
+    .heat-controls label { flex: 1 1 12rem; }
+    .heat-legend { margin-top: .75rem; font-size: .82rem; color: var(--muted); }
+    .heat-ramp { display: inline-block; vertical-align: middle; width: 7rem; height: .7rem;
+      background: linear-gradient(to right, #fff7bc, #fec44f, #d95f0e, #993404); border: 1px solid var(--control-border); }
+    #heat-scope, #building-location { margin-top: .65rem; font-size: .87rem; }
+    #building-location { border-left: 4px solid #2563eb; padding-left: .65rem; }
+    #heat-coverage, #heat-status, #heat-areas { font-size: .82rem; color: var(--muted); }
+    #heat-areas { padding-left: 1.2rem; margin: .35rem 0; }
+    .scenario-switches { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: 1rem; }
+    .scenario-switches legend { font-size: .875rem; font-weight: 650; padding: 0 0 .35rem; }
+    .scenario-switches label { display: inline-flex; gap: .45rem; align-items: center; font-weight: 500; }
+    .scenario-switches input { width: 1.05rem; height: 1.05rem; min-height: 0; margin: 0; accent-color: #2575bd; }
+    .time-controls { position: sticky; top: .5rem; z-index: 3; background: var(--panel);
+      padding: .85rem; margin-top: .8rem; border: 1px solid var(--border); border-radius: .65rem; }
+    .time-heading { display: flex; justify-content: space-between; gap: .4rem; flex-wrap: wrap; }
+    #map-hour-label { font-weight: 650; font-variant-numeric: tabular-nums; }
+    #map-hour { padding: 0; accent-color: #e7a529; cursor: pointer; }
+    .time-buttons { display: flex; gap: .5rem; flex-wrap: wrap; }
+    #play-map { background: var(--button); color: var(--button-ink); }
+    .map-summary { position: static; max-width: none; display: flex; flex-wrap: wrap; gap: .25rem 1rem;
+      box-shadow: none; margin-top: .8rem; }
+    #summary-grid-reduction { margin: 0; }
+    #region-map { height: 510px; margin-top: .8rem; border-radius: .65rem; z-index: 0; background: #e5eced; }
+    .scenario-switches label { border-bottom: 3px solid var(--metric-color); padding-bottom: .2rem; }
+    .scenario-switches input { accent-color: var(--metric-color); }
+    .metric-values { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-top: .75rem; }
+    .metric-card { min-width: 0; border: 1px solid var(--border); border-left: 4px solid var(--metric-color);
+      border-radius: .5rem; padding: .65rem .75rem; }
+    .metric-card[hidden], #no-scenarios[hidden] { display: none; }
+    .metric-card h3 { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; font-size: .87rem; margin: 0 0 .3rem; }
+    .metric-ramp { width: 3.5rem; height: .65rem; border: 1px solid var(--control-border); }
+    .scenario-values, #overlay-note { font-size: .8rem; color: var(--muted); }
+    #overlay-note { margin-top: .6rem; }
+    .city-values { margin-top: .75rem; font-size: .85rem; }
+    #no-scenarios { margin-top: 1rem; }
+    @media (max-width: 37rem) {
+      #region-map { height: 400px; }
+      .metric-values { grid-template-columns: minmax(0, 1fr); }
+    }
+    .map-key { display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; background: #164b81; }
+    @media (max-width: 37rem) {
+      .map-heading { align-items: start; flex-direction: column; gap: .6rem; }
+      .map-summary { position: static; max-width: none; margin-top: .65rem; }
+    }
     footer { margin-top: .9rem; font-size: .87rem; }
     @media (max-width: 50rem) { fieldset { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 37rem) {
@@ -143,6 +207,98 @@
       <svg id="chart" role="img" tabindex="0" aria-label="Hourly grid import and excess solar. Use the arrow keys to inspect an hour."></svg>
       <p id="inspection" aria-live="off">Hover over the chart or use the arrow keys to inspect an hour.</p>
     </section>
+    <section class="map-panel" aria-labelledby="map-heading">
+      <div class="map-heading">
+        <div>
+          <h2 id="map-heading">Fort Collins &amp; surrounding areas</h2>
+          <p>Explore Loveland, Windsor, Timnath, Wellington, and the foothills.</p>
+        </div>
+        <button type="button" id="reset-map" disabled>Reset map view</button>
+      </div>
+      <div class="heat-controls">
+        <label>Map values
+          <select id="heat-units" disabled>
+            <option value="average">Average per simulated building</option>
+            <option value="total">Total for simulated buildings</option>
+          </select>
+        </label>
+        <label>Map period
+          <select id="map-period" disabled>
+            <option value="hour">Hourly</option>
+            <option value="day">Daily totals</option>
+          </select>
+        </label>
+        <button type="button" id="locate-building" disabled>Show building area</button>
+      </div>
+      <fieldset class="scenario-switches" aria-label="Visible scenarios">
+        <legend>Show scenarios</legend>
+        <label style="--metric-color:#b45309"><input type="checkbox" id="show-solar" checked> Solar generation</label>
+        <label style="--metric-color:#5b21b6"><input type="checkbox" id="show-before" checked> Grid import without solar</label>
+        <label style="--metric-color:#991b1b"><input type="checkbox" id="show-after" checked> Grid import with solar</label>
+        <label style="--metric-color:#166534"><input type="checkbox" id="show-reduction" checked> Grid reduction from solar</label>
+        <label style="--metric-color:#155e75"><input type="checkbox" id="show-excess" checked> Excess solar</label>
+      </fieldset>
+      <p id="building-location" role="status">Select a building to highlight its known city or broader census area.</p>
+      <div class="time-controls">
+        <div class="time-heading">
+          <label for="map-hour">Simulation hour · Mountain Time</label>
+          <output id="map-hour-label" for="map-hour">Waiting for simulation results…</output>
+        </div>
+        <input type="range" id="map-hour" min="0" max="23" step="1" value="12" disabled
+               aria-describedby="heat-scope">
+        <div class="time-buttons">
+          <button type="button" id="previous-hour" disabled>Previous hour</button>
+          <button type="button" id="play-map" aria-pressed="false" disabled>Play day</button>
+          <button type="button" id="next-hour" disabled>Next hour</button>
+        </div>
+        <p id="heat-scope">City maps · waiting for simulation results</p>
+      </div>
+      <div class="heat-legend"><span id="heat-range">No heatmap results loaded.</span> · gray = no mapped data
+      </div>
+      <div class="map-summary" aria-live="off">
+        <p id="map-scope">Choose a simulation day to see its energy summary.</p>
+        <p id="summary-grid-reduction">Grid reduction —</p>
+        <p id="summary-solar">Solar generation —</p>
+      </div>
+      <p id="no-scenarios" hidden>Select at least one scenario to show a map.</p>
+      <div id="region-map" role="region" aria-label="Combined simulation map of Fort Collins and Loveland"
+           aria-describedby="map-note map-status overlay-note"></div>
+      <p id="overlay-note">Each metric has its own color scheme. Diagonal bands keep overlapping metrics visible;
+        select just one metric for a solid heatmap. Bands do not represent different neighborhoods.</p>
+      <div class="metric-values" aria-label="Metric colors and city values">
+        <section id="scenario-solar" class="metric-card" style="--metric-color:#b45309" aria-labelledby="heading-solar">
+          <h3 id="heading-solar"><span class="metric-ramp" style="background:linear-gradient(to right, #fff7bc, #fec44f, #b45309)" aria-hidden="true"></span>Solar generation</h3>
+          <p id="values-solar" class="scenario-values"></p>
+        </section>
+        <section id="scenario-before" class="metric-card" style="--metric-color:#5b21b6" aria-labelledby="heading-before">
+          <h3 id="heading-before"><span class="metric-ramp" style="background:linear-gradient(to right, #ede9fe, #a78bfa, #5b21b6)" aria-hidden="true"></span>Grid import without solar</h3>
+          <p id="values-before" class="scenario-values"></p>
+        </section>
+        <section id="scenario-after" class="metric-card" style="--metric-color:#991b1b" aria-labelledby="heading-after">
+          <h3 id="heading-after"><span class="metric-ramp" style="background:linear-gradient(to right, #fee2e2, #f87171, #991b1b)" aria-hidden="true"></span>Grid import with solar</h3>
+          <p id="values-after" class="scenario-values"></p>
+        </section>
+        <section id="scenario-reduction" class="metric-card" style="--metric-color:#166534" aria-labelledby="heading-reduction">
+          <h3 id="heading-reduction"><span class="metric-ramp" style="background:linear-gradient(to right, #dcfce7, #4ade80, #166534)" aria-hidden="true"></span>Grid reduction from solar</h3>
+          <p id="values-reduction" class="scenario-values"></p>
+        </section>
+        <section id="scenario-excess" class="metric-card" style="--metric-color:#155e75" aria-labelledby="heading-excess">
+          <h3 id="heading-excess"><span class="metric-ramp" style="background:linear-gradient(to right, #cffafe, #22d3ee, #155e75)" aria-hidden="true"></span>Excess solar</h3>
+          <p id="values-excess" class="scenario-values"></p>
+        </section>
+      </div>
+      <details class="city-values"><summary>Compare numeric city values</summary>
+        <ul id="heat-areas" aria-label="City heatmap values"></ul>
+      </details>
+      <p id="heat-coverage"></p>
+      <p id="heat-status" role="status"></p>
+      <p id="map-note">Colors summarize simulated homes tagged Fort Collins or Loveland, using
+        2018 Census city boundaries. They do not estimate block or street-level conditions or citywide totals.
+        The blue outline shows the selected building’s known area, not its address.
+        <span class="map-key" aria-hidden="true"></span> Dots are the four solar reference locations.
+        All simulated homes still use the same averaged rooftop solar profile.</p>
+      <p id="map-status" role="status">Loading regional map…</p>
+    </section>
     <footer>All buildings sums the scenarios as if every simulated building received the rooftop system. Excess solar is reported separately with zero export credit.</footer>
   </main>
   <script>
@@ -182,6 +338,334 @@
     let xPosition;
     let chartWidth;
     let cursor;
+    let regionMap;
+    let referenceLayer;
+    const metricLayers = {};
+    let cityLayer;
+    let selectionLayer;
+    let metricRenderer;
+    let patternDefinitions;
+    const mapScenarios = [
+      {id: "solar", label: "Solar generation", measure: measures.solar, colors: [[255,247,188],[254,196,79],[180,83,9]]},
+      {id: "before", label: "Grid import without solar", measure: measures.before, colors: [[237,233,254],[167,139,250],[91,33,182]]},
+      {id: "after", label: "Grid import with solar", measure: measures.after, colors: [[254,226,226],[248,113,113],[153,27,27]]},
+      {id: "reduction", label: "Grid reduction from solar", measure: "grid_reduction_kwh", colors: [[220,252,231],[74,222,128],[22,101,52]]},
+      {id: "excess", label: "Excess solar", measure: measures.excess, colors: [[207,250,254],[34,211,238],[21,94,117]]},
+    ];
+    let mapHourIndex = 0;
+    let playTimer = null;
+    let mapLoading = false;
+    const mapHour = document.getElementById("map-hour");
+    const mapHourLabel = document.getElementById("map-hour-label");
+    const mapPeriod = document.getElementById("map-period");
+    const playMap = document.getElementById("play-map");
+    let mapDay = null;
+    let mapGeography = { features: [] };
+    let buildingDetails = {};
+    let loadedBuilding = null;
+    const heatUnits = document.getElementById("heat-units");
+    const locateBuilding = document.getElementById("locate-building");
+    let solarReferencePoints = [];
+    const regionBounds = [[40.33, -105.25], [40.76, -104.80]];
+    const mapStatus = document.getElementById("map-status");
+    const resetMap = document.getElementById("reset-map");
+
+    function areaName(feature) {
+      return feature.properties.name.replace(/ city$/, "");
+    }
+
+    function heatValue(area, scenario) {
+      if (!area || !area.building_count) return null;
+      const value = area[scenario.measure];
+      return heatUnits.value === "average" ? value / area.building_count : value;
+    }
+
+    function heatColor(value, maximum, scenario) {
+      if (value === null) return "#cbd5e1";
+      const stops = scenario.colors;
+      const ratio = maximum > 0 ? Math.max(0, Math.min(1, value / maximum)) : 0;
+      const position = ratio * (stops.length - 1);
+      const low = Math.min(stops.length - 2, Math.floor(position));
+      const fraction = position - low;
+      return "rgb(" + stops[low].map((start, index) =>
+        Math.round(start + (stops[low + 1][index] - start) * fraction)).join(",") + ")";
+    }
+
+    function stopPlayback() {
+      if (playTimer !== null) clearInterval(playTimer);
+      playTimer = null;
+      playMap.textContent = "Play day";
+      playMap.setAttribute("aria-pressed", "false");
+    }
+
+    function mapFrame() {
+      return mapPeriod.value === "day" ? mapDay : mapDay?.hours?.[mapHourIndex];
+    }
+
+    function mapTimeLabel(frame) {
+      return frame?.hour_start_mountain
+        ? hourFormat.format(new Date(frame.hour_start_mountain)) : "Daily totals";
+    }
+
+    function updateMapSummary() {
+      if (!loadedBuilding) return;
+      const frame = mapFrame();
+      const daily = mapPeriod.value === "day";
+      const row = daily ? null : hours.find(row => row.hour_start_mountain === frame?.hour_start_mountain);
+      const label = loadedBuilding === "all" ? "All " + buildings.length + " simulated buildings"
+        : "Simulated building " + loadedBuilding;
+      document.getElementById("map-scope").textContent = label + " · "
+        + (mapDay ? dateFormat.format(new Date(mapDay.day + "T00:00:00Z")) + " · " : "") + mapTimeLabel(frame);
+      if (!daily && !row) {
+        document.getElementById("summary-grid-reduction").textContent = "No building results for this hour.";
+        document.getElementById("summary-solar").textContent = "";
+        return;
+      }
+      const value = key => daily ? hours.reduce((sum, hour) => sum + hour[key], 0) : row[key];
+      document.getElementById("summary-grid-reduction").textContent = "Grid reduction "
+        + format.format(value(measures.before) - value(measures.after)) + " kWh";
+      document.getElementById("summary-solar").textContent = "Solar generation "
+        + format.format(value(measures.solar)) + " kWh";
+      if (!daily) inspect(hours.indexOf(row));
+    }
+
+    function configureTimeline() {
+      const previousInstant = mapHourLabel.dataset.instant;
+      const frames = mapDay?.hours || [];
+      let index = frames.findIndex(frame => frame.hour_start_mountain === previousInstant);
+      if (index < 0 && previousInstant) index = frames.findIndex(frame =>
+        frame.hour_start_mountain.slice(11, 16) === previousInstant.slice(11, 16));
+      if (index < 0) index = frames.findIndex(frame => frame.hour_start_mountain.slice(11, 13) === "12");
+      mapHourIndex = index < 0 ? 0 : index;
+      mapHour.max = String(Math.max(0, frames.length - 1));
+      mapHour.value = String(mapHourIndex);
+      drawHeatmap();
+    }
+
+    function setMapHour(index, manual = true) {
+      if (manual) stopPlayback();
+      const frames = mapDay?.hours || [];
+      if (!frames.length) return;
+      mapHourIndex = Math.max(0, Math.min(frames.length - 1, index));
+      mapHour.value = String(mapHourIndex);
+      drawHeatmap();
+    }
+
+    function enabledScenarios() {
+      return mapScenarios.filter(scenario => document.getElementById("show-" + scenario.id).checked);
+    }
+
+    function updateScenarioVisibility() {
+      for (const scenario of mapScenarios) {
+        document.getElementById("scenario-" + scenario.id).hidden =
+          !document.getElementById("show-" + scenario.id).checked;
+      }
+      document.getElementById("no-scenarios").hidden = enabledScenarios().length > 0;
+      drawHeatmap();
+    }
+
+    function metricFill(scenario, areaId, color) {
+      if (enabledScenarios().length === 1) return color;
+      const namespace = "http://www.w3.org/2000/svg";
+      const pattern = document.createElementNS(namespace, "pattern");
+      const id = "metric-band-" + scenario.id + "-" + areaId.replace(/[^a-z0-9]/gi, "-");
+      pattern.setAttribute("id", id);
+      pattern.setAttribute("patternUnits", "userSpaceOnUse");
+      pattern.setAttribute("width", "25");
+      pattern.setAttribute("height", "25");
+      pattern.setAttribute("patternTransform", "rotate(-35)");
+      const band = document.createElementNS(namespace, "rect");
+      band.setAttribute("x", "0");
+      band.setAttribute("y", String(mapScenarios.indexOf(scenario) * 5));
+      band.setAttribute("width", "25");
+      band.setAttribute("height", "5");
+      band.setAttribute("fill", color);
+      pattern.append(band);
+      patternDefinitions.append(pattern);
+      return "url(#" + id + ")";
+    }
+
+    function drawHeatmap() {
+      for (const layer of Object.values(metricLayers)) layer.clearLayers();
+      if (cityLayer) cityLayer.clearLayers();
+      if (patternDefinitions) patternDefinitions.replaceChildren();
+      const rows = document.getElementById("heat-areas");
+      rows.replaceChildren();
+      const frame = mapFrame();
+      const frames = mapDay?.hours || [];
+      const daily = mapPeriod.value === "day";
+      heatUnits.disabled = mapPeriod.disabled = !mapDay || mapLoading;
+      mapHour.disabled = playMap.disabled = !mapDay || mapLoading || daily || !frames.length;
+      document.getElementById("previous-hour").disabled = mapHour.disabled || mapHourIndex === 0;
+      document.getElementById("next-hour").disabled = mapHour.disabled || mapHourIndex >= frames.length - 1;
+      mapHourLabel.textContent = mapDay ? mapTimeLabel(frame) : "Waiting for simulation results…";
+      mapHourLabel.dataset.instant = frame?.hour_start_mountain || "";
+      mapHour.setAttribute("aria-valuetext", mapHourLabel.textContent);
+      for (const scenario of mapScenarios) document.getElementById("values-" + scenario.id).textContent = "";
+      if (!mapDay || !frame) {
+        document.getElementById("heat-range").textContent = "No heatmap results loaded.";
+        document.getElementById("heat-scope").textContent = "City overlays unavailable";
+        document.getElementById("heat-coverage").textContent = "";
+        updateMapSummary();
+        return;
+      }
+      // Share one scale across all five measures and the entire day, including hidden maps.
+      const scaleFrames = daily ? [mapDay] : frames;
+      const maximum = Math.max(0, ...scaleFrames.flatMap(item => item.areas.flatMap(area =>
+        mapScenarios.map(scenario => heatValue(area, scenario)))));
+      const interval = daily ? "day" : "hour";
+      const units = heatUnits.value === "average" ? "kWh / building / " + interval : "kWh / " + interval;
+      document.getElementById("heat-range").textContent = "0 — " + format.format(maximum)
+        + " " + units + " · same scale for every scenario and hour in this day";
+      document.getElementById("heat-scope").textContent = "All simulated buildings · "
+        + dateFormat.format(new Date(mapDay.day + "T00:00:00Z")) + " · " + mapTimeLabel(frame);
+      const placed = frame.total_buildings - frame.unmapped.building_count;
+      document.getElementById("heat-coverage").textContent = placed + " of "
+        + frame.total_buildings + " buildings have a mapped city in this " + interval + ". "
+        + frame.unmapped.building_count + " lack a specific mapped city and are excluded from city colors.";
+      for (const scenario of mapScenarios) {
+        const labels = [];
+        mapGeography.features.filter(feature => feature.properties.kind === "place").forEach(feature => {
+          const area = frame.areas.find(row => row.area_id === feature.properties.area_id);
+          const value = heatValue(area, scenario);
+          const text = areaName(feature) + ": " + (value === null ? "No mapped data"
+            : format.format(value) + " " + units + " (" + area.building_count + " buildings)");
+          labels.push(text);
+          if (!document.getElementById("show-" + scenario.id).checked) return;
+          const row = document.createElement("li");
+          row.textContent = scenario.label + " · " + text;
+          rows.append(row);
+          const layer = metricLayers[scenario.id];
+          if (!layer) return;
+          L.geoJSON(feature, {
+            renderer: metricRenderer, interactive: false,
+            style: {stroke: false, fillColor: metricFill(scenario, feature.properties.area_id,
+              heatColor(value, maximum, scenario)), fillOpacity: value === null ? .2 : .8},
+          }).addTo(layer);
+        });
+        document.getElementById("values-" + scenario.id).textContent = labels.join(" · ");
+      }
+      if (cityLayer) {
+        mapGeography.features.filter(feature => feature.properties.kind === "place").forEach(feature => {
+          const area = frame.areas.find(row => row.area_id === feature.properties.area_id);
+          const popup = document.createElement("div");
+          const title = document.createElement("strong");
+          title.textContent = areaName(feature) + " · " + mapTimeLabel(frame);
+          popup.append(title);
+          for (const scenario of enabledScenarios()) {
+            const line = document.createElement("p");
+            const value = heatValue(area, scenario);
+            line.textContent = scenario.label + ": " + (value === null ? "No mapped data"
+              : format.format(value) + " " + units);
+            popup.append(line);
+          }
+          L.geoJSON(feature, {
+            renderer: metricRenderer,
+            style: {color: "#475569", weight: 1.2, fillOpacity: 0},
+          }).bindTooltip(areaName(feature)).bindPopup(popup).addTo(cityLayer);
+        });
+      }
+      updateMapSummary();
+    }
+
+    function showBuildingArea(building, focus = false) {
+      if (selectionLayer) selectionLayer.clearLayers();
+      const message = document.getElementById("building-location");
+      const selected = buildingDetails[building];
+      const feature = mapGeography.features.find(feature => feature.properties.area_id === selected?.map_area_id);
+      locateBuilding.disabled = !feature || !regionMap;
+      if (!building || building === "all") {
+        message.textContent = "Select a building to highlight its known city or broader census area.";
+        return;
+      }
+      if (!feature) {
+        message.textContent = "Building " + building + ": no usable city or regional location is available in the metadata.";
+        return;
+      }
+      const city = feature.properties.kind === "place";
+      message.textContent = "Building " + building + " · " + areaName(feature)
+        + (city ? " · city-level location only; address unknown."
+          : " · broad census area only; city and address unknown.");
+      if (selectionLayer) {
+        const outline = L.geoJSON(feature, {
+          pane: "selected-area", interactive: false,
+          style: {color: "#2563eb", weight: 3, dashArray: city ? "" : "8 6", fill: false},
+        }).addTo(selectionLayer);
+        if (focus) regionMap.fitBounds(outline.getBounds(), {padding: [24, 24], maxZoom: 12, animate: false});
+      }
+    }
+
+    function drawReferencePoints() {
+      if (!regionMap || !referenceLayer) return;
+      referenceLayer.clearLayers();
+      solarReferencePoints.forEach((point, index) => {
+        const label = "PVWatts reference " + (index + 1);
+        const position = [point.latitude, point.longitude];
+        const popup = document.createElement("p");
+        popup.textContent = label + " · " + point.latitude.toFixed(2) + ", "
+          + point.longitude.toFixed(2)
+          + ". One of four equally weighted locations for the representative 4 kW rooftop profile.";
+        L.marker(position, {
+          title: label, alt: label,
+          icon: L.divIcon({
+            className: "solar-reference-marker",
+            html: '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">'
+              + '<circle cx="12" cy="12" r="9" fill="#164b81" stroke="white" stroke-width="3"/></svg>',
+            iconSize: [24, 24], iconAnchor: [12, 12],
+          }),
+        }).bindPopup(popup).addTo(referenceLayer);
+      });
+    }
+
+    function initializeMap() {
+      try {
+        if (!window.L) throw new Error("Map library unavailable");
+        regionMap = L.map("region-map", {scrollWheelZoom: false})
+          .fitBounds(regionBounds, {animate: false});
+        const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+        }).addTo(regionMap);
+        tiles.on("tileerror", () => {
+          mapStatus.textContent = "Some map tiles could not load. Check your internet connection; numeric simulation results remain available.";
+        });
+        regionMap.createPane("metric-areas");
+        regionMap.getPane("metric-areas").style.zIndex = 410;
+        metricRenderer = L.svg({pane: "metric-areas"}).addTo(regionMap);
+        patternDefinitions = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+        regionMap.getPane("metric-areas").querySelector("svg").prepend(patternDefinitions);
+        regionMap.createPane("selected-area");
+        regionMap.getPane("selected-area").style.zIndex = 450;
+        regionMap.getPane("selected-area").style.pointerEvents = "none";
+        for (const scenario of mapScenarios) metricLayers[scenario.id] = L.layerGroup().addTo(regionMap);
+        cityLayer = L.layerGroup().addTo(regionMap);
+        selectionLayer = L.layerGroup().addTo(regionMap);
+        referenceLayer = L.layerGroup().addTo(regionMap);
+        L.control.layers(null, {"Solar reference locations": referenceLayer}).addTo(regionMap);
+        regionMap.attributionControl.addAttribution('<a href="https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2018/MapServer">Census 2018 boundaries</a>');
+        L.control.scale({imperial: true, metric: true}).addTo(regionMap);
+        new ResizeObserver(() => regionMap.invalidateSize({pan: false})).observe(document.getElementById("region-map"));
+        resetMap.disabled = false;
+        resetMap.addEventListener("click", () => regionMap.fitBounds(regionBounds, {animate: false}));
+        mapStatus.textContent = "Use the scenario checkboxes to overlay metrics or view one metric by itself. Click a city for its values.";
+        drawReferencePoints();
+        updateScenarioVisibility();
+        showBuildingArea(buildingSelect.value);
+      } catch (error) {
+        mapStatus.textContent = "Map unavailable. Reload with an internet connection to load it. Numeric simulation results remain available.";
+      }
+    }
+
+    // Load independently so an unavailable map CDN cannot prevent simulation use.
+    const mapScript = document.createElement("script");
+    mapScript.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    mapScript.integrity = "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=";
+    mapScript.crossOrigin = "";
+    mapScript.onload = initializeMap;
+    mapScript.onerror = () => {
+      mapStatus.textContent = "Map unavailable. Reload with an internet connection to load the regional map. Simulation results remain available.";
+    };
+    document.head.append(mapScript);
 
     async function getJSON(path, params = {}) {
       const response = await fetch(path + "?" + new URLSearchParams(params));
@@ -203,7 +687,8 @@
         details.heating_fuel,
       ].filter(Boolean);
       const label = traits.length ? [...traits, "ID " + id].join(" · ") : "Building " + id;
-      const searchText = normalize(label + (area ? " sqft square feet" : ""));
+      const searchText = normalize(label + (area ? " sqft square feet" : "")
+        + " " + (details.city || "") + " " + (details.county || ""));
       return { id: String(id), label, searchText };
     }
 
@@ -226,7 +711,7 @@
       if (choices.some(option => option.value === previous)) buildingSelect.value = previous;
       buildingMatches.textContent = query
         ? format.format(matches.length) + " matching " + (matches.length === 1 ? "building" : "buildings")
-        : "Search by type, square footage, decade, heating fuel, or ID.";
+        : "Search by type, square footage, decade, heating fuel, city, or ID.";
       if (labeledCount < buildings.length) {
         buildingMatches.textContent += " Buildings without metadata appear by ID.";
       }
@@ -319,6 +804,15 @@
         const sum = hours.reduce((total, row) => total + row[measure], 0);
         document.getElementById("total-" + label).textContent = format.format(sum) + " kWh";
       }
+      document.getElementById("map-scope").textContent = (building === "all"
+        ? "All " + buildings.length + " simulated buildings" : "Simulated building " + building)
+        + " · " + dateFormat.format(new Date(day + "T00:00:00Z"));
+      const total = key => hours.reduce((sum, row) => sum + row[key], 0);
+      const reduction = total(measures.before) - total(measures.after);
+      document.getElementById("summary-grid-reduction").textContent = "Grid reduction " + format.format(reduction) + " kWh";
+      document.getElementById("summary-solar").textContent = "Solar generation " + format.format(total(measures.solar)) + " kWh";
+      showBuildingArea(building, building !== loadedBuilding);
+      loadedBuilding = building;
       drawChart();
     }
 
@@ -326,23 +820,66 @@
       if (!buildingSelect.reportValidity()) return;
       const building = buildingSelect.value;
       let day = dayInput.value;
+      stopPlayback();
+      mapLoading = true;
+      drawHeatmap();
       fieldset.disabled = true;
       status.dataset.error = "false";
       status.textContent = usePeak ? "Finding the highest-generation day…" : "Loading hourly results…";
       try {
         if (usePeak) day = (await getJSON("/api/most-productive-day", { building })).day;
-        showDay(await getJSON("/api/day", { building, date: day }), building, day);
+        const [dayResult, mapResult] = await Promise.allSettled([
+          getJSON("/api/day", { building, date: day }), getJSON("/api/map-day", { date: day }),
+        ]);
+        if (dayResult.status === "rejected") throw dayResult.reason;
+        showDay(dayResult.value, building, day);
+        mapDay = mapResult.status === "fulfilled" ? mapResult.value : null;
+        configureTimeline();
+        document.getElementById("heat-status").textContent = mapDay ? ""
+          : "The city heatmap could not load. Hourly simulation results remain available.";
         dayInput.value = day;
         status.textContent = usePeak ? "Showing the day with the highest total solar generation." : "";
       } catch (error) {
         status.dataset.error = "true";
         status.textContent = error.message;
       } finally {
+        mapLoading = false;
         fieldset.disabled = false;
+        drawHeatmap();
       }
     }
 
-    buildingSearch.addEventListener("input", updateBuildingChoices);
+    mapHour.addEventListener("input", () => setMapHour(Number(mapHour.value)));
+    document.getElementById("previous-hour").addEventListener("click", () => setMapHour(mapHourIndex - 1));
+    document.getElementById("next-hour").addEventListener("click", () => setMapHour(mapHourIndex + 1));
+    playMap.addEventListener("click", () => {
+      if (playTimer !== null) { stopPlayback(); return; }
+      if (mapHour.disabled) return;
+      if (mapHourIndex >= mapDay.hours.length - 1) setMapHour(0);
+      playMap.textContent = "Pause";
+      playMap.setAttribute("aria-pressed", "true");
+      playTimer = setInterval(() => {
+        if (mapHourIndex >= mapDay.hours.length - 1) { stopPlayback(); return; }
+        setMapHour(mapHourIndex + 1, false);
+        if (mapHourIndex >= mapDay.hours.length - 1) stopPlayback();
+      }, 700);
+    });
+    mapPeriod.addEventListener("change", () => { stopPlayback(); drawHeatmap(); });
+    heatUnits.addEventListener("change", drawHeatmap);
+    for (const scenario of mapScenarios) {
+      document.getElementById("show-" + scenario.id).addEventListener("change", updateScenarioVisibility);
+    }
+    document.addEventListener("visibilitychange", () => { if (document.hidden) stopPlayback(); });
+    window.addEventListener("pagehide", stopPlayback);
+    locateBuilding.addEventListener("click", () => showBuildingArea(buildingSelect.value, true));
+    buildingSelect.addEventListener("change", () => {
+      showBuildingArea(buildingSelect.value, true);
+      update(false);
+    });
+    buildingSearch.addEventListener("input", () => {
+      updateBuildingChoices();
+      showBuildingArea(buildingSelect.value);
+    });
     form.addEventListener("submit", event => { event.preventDefault(); update(false); });
     peak.addEventListener("click", () => update(true));
     chart.addEventListener("pointermove", event => {
@@ -366,6 +903,10 @@
     new ResizeObserver(drawChart).observe(chart);
 
     getJSON("/api/metadata").then(metadata => {
+      mapGeography = metadata.map_geography || { features: [] };
+      buildingDetails = metadata.building_details;
+      solarReferencePoints = metadata.solar_reference_points || [];
+      drawReferencePoints();
       labeledCount = Object.keys(metadata.building_details).length;
       buildings = metadata.buildings.map(id => buildingChoice(id, metadata.building_details[id] || {}));
       updateBuildingChoices();
