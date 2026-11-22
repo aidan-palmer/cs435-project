@@ -4,7 +4,7 @@ import argparse
 import csv
 import json
 import logging
-from datetime import date
+from datetime import date, timezone
 from functools import lru_cache
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -12,6 +12,11 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 from pyspark.sql import SparkSession, functions as F
+
+if __package__:
+    from .pvwatts_api import FORT_COLLINS_POINTS
+else:
+    from pvwatts_api import FORT_COLLINS_POINTS
 
 
 MEASURES = (
@@ -28,6 +33,71 @@ BUILDING_FIELDS = {
     "construction_decade": "in.vintage",
     "heating_fuel": "in.heating_fuel",
 }
+LOCATION_FIELDS = {"city": "in.city", "county": "in.county_name", "puma": "in.puma"}
+MAP_GEOGRAPHY = Path(__file__).with_name("larimer_map_areas.geojson")
+
+
+def building_map_area(details, geography):
+    """Match only published city/PUMA tags; weather coordinates are not home locations."""
+    features = geography["features"]
+    city = details.get("city", "")
+    for feature in features:
+        area = feature["properties"]
+        if area["kind"] == "place" and city == "CO, " + area["name"].removesuffix(" city"):
+            return area["area_id"]
+    puma = details.get("puma", "")
+    for feature in features:
+        area = feature["properties"]
+        geoid = area["geoid"]
+        if area["kind"] == "puma" and puma == "G" + geoid[:2] + "0" + geoid[2:]:
+            return area["area_id"]
+    return None
+
+
+def summarize_map_day(records, details):
+    """Sum simulated building kWh by known city, retaining unplaced totals for coverage."""
+    areas = {}
+    unmapped = {"building_count": 0, **dict.fromkeys(MEASURES, 0.0)}
+    for record in records:
+        record = record.asDict() if hasattr(record, "asDict") else record
+        area_id = record.get("map_area_id") if "map_area_id" in record else (
+            details.get(str(record["building_id"]), {}).get("map_area_id")
+        )
+        if area_id and area_id.startswith("place:"):
+            target = areas.setdefault(area_id, {
+                "area_id": area_id, "building_count": 0, **dict.fromkeys(MEASURES, 0.0),
+            })
+        else:
+            target = unmapped
+        target["building_count"] += record.get("building_count", 1)
+        for measure in MEASURES:
+            target[measure] += record[measure]
+    for target in [*areas.values(), unmapped]:
+        target["grid_reduction_kwh"] = (
+            target["grid_import_without_solar_kwh"] - target["grid_import_with_solar_kwh"]
+        )
+    return {"areas": [areas[key] for key in sorted(areas)], "unmapped": unmapped}
+
+
+def summarize_map_hours(records):
+    """Retain UTC ordering and Mountain offsets, including the repeated fall hour."""
+    grouped = {}
+    for record in records:
+        record = record.asDict() if hasattr(record, "asDict") else record
+        instant = record["hour_start_utc"]
+        grouped.setdefault(instant, []).append(record)
+    result = []
+    for instant, rows in sorted(grouped.items()):
+        summary = summarize_map_day(rows, {})
+        result.append({
+            "hour_start_utc": instant if isinstance(instant, str) else instant.replace(tzinfo=timezone.utc).isoformat(),
+            "hour_start_mountain": rows[0]["hour_start_mountain"],
+            "total_buildings": sum(row["building_count"] for row in rows),
+            **summary,
+        })
+    return result
+
+
 DEFAULT_METADATA = (
     Path(__file__).resolve().parents[2] / "DATA_for_project"
     / "CO_baseline_metadata_and_annual_results.csv"
@@ -51,6 +121,9 @@ def read_building_details(path, buildings):
             details[building] = {
                 name: (row[column] or "").strip() for name, column in BUILDING_FIELDS.items()
             }
+            details[building].update({
+                name: (row.get(column) or "").strip() for name, column in LOCATION_FIELDS.items()
+            })
     return details
 
 
@@ -68,10 +141,56 @@ class GridData:
         if not inventory.buildings or not inventory.first_day:
             raise ValueError("The simulation contains no buildings with hourly data")
         self.metadata = inventory.asDict()
+        self.metadata["solar_reference_points"] = [
+            {"latitude": latitude, "longitude": longitude}
+            for latitude, longitude in FORT_COLLINS_POINTS
+        ]
+        self.metadata["map_geography"] = json.loads(MAP_GEOGRAPHY.read_text(encoding="utf-8"))
         self.buildings = set(inventory.buildings)
         self.metadata["building_details"] = (
             read_building_details(metadata_path, self.buildings) if metadata_path else {}
         )
+
+        for details in self.metadata["building_details"].values():
+            details["map_area_id"] = building_map_area(details, self.metadata["map_geography"])
+
+        # A tiny broadcast join lets Spark aggregate city hours before collecting them.
+        locations = self.hourly.sparkSession.createDataFrame([
+            (building, self.metadata["building_details"].get(str(building), {}).get("map_area_id") or "")
+            for building in sorted(self.buildings)
+        ], ["building_id", "map_area_id"])
+        self.map_hourly = self.hourly.join(F.broadcast(locations), "building_id", "left")
+
+    def validate_day(self, day):
+        if date.fromisoformat(day).isoformat() != day:
+            raise ValueError("Enter a date as YYYY-MM-DD.")
+        if not self.metadata["first_day"] <= day <= self.metadata["last_day"]:
+            raise ValueError("Choose a date inside the simulation period.")
+
+    @lru_cache(maxsize=128)
+    def map_day(self, day):
+        self.validate_day(day)
+        # Collect daily building totals only, rather than the full hourly dataset.
+        records = (
+            self.hourly.where(F.col("day") == day)
+            .groupBy("building_id")
+            .agg(*(F.sum(name).alias(name) for name in MEASURES))
+            .collect()
+        )
+        if not records:
+            raise ValueError("There are no simulation results for that date.")
+        area_hours = (
+            self.map_hourly.where(F.col("day") == day)
+            .groupBy("map_area_id", "hour_start_utc", "hour_start_mountain")
+            .agg(F.count_distinct("building_id").alias("building_count"),
+                 *(F.sum(name).alias(name) for name in MEASURES))
+            # Format in Spark's UTC session before Python can apply a host-local timezone.
+            .withColumn("hour_start_utc", F.date_format("hour_start_utc", "yyyy-MM-dd'T'HH:mm:ss'Z'"))
+            .collect()
+        )
+        return {"day": day, "total_buildings": len(records), **summarize_map_day(
+            records, self.metadata["building_details"]
+        ), "hours": summarize_map_hours(area_hours)}
 
     def select_buildings(self, building):
         if building == "all":
@@ -86,10 +205,7 @@ class GridData:
     @lru_cache(maxsize=128)
     def day(self, building, day):
         hourly = self.select_buildings(building)
-        if date.fromisoformat(day).isoformat() != day:
-            raise ValueError("Enter a date as YYYY-MM-DD.")
-        if not self.metadata["first_day"] <= day <= self.metadata["last_day"]:
-            raise ValueError("Choose a date inside the simulation period.")
+        self.validate_day(day)
         records = (
             hourly.where(F.col("day") == day)
             .groupBy("hour_start_utc", "hour_start_mountain")
@@ -139,6 +255,8 @@ def dashboard_handler(data, page):
                         return
                     case "/api/metadata":
                         payload = data.metadata
+                    case "/api/map-day":
+                        payload = data.map_day(query.get("date", [""])[0])
                     case "/api/day":
                         payload = data.day(building, query.get("date", [""])[0])
                     case "/api/most-productive-day":
