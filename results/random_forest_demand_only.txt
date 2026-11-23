@@ -1,0 +1,57 @@
+Validation starts: 2018-09-15
+Testing starts: 2018-11-08
+
+Train:
++-------+-------------------+-------------------+
+|samples|start              |end                |
++-------+-------------------+-------------------+
+|3355488|2018-01-08 00:00:00|2018-09-14 23:00:00|
++-------+-------------------+-------------------+
+
+
+Validation:
++-------+-------------------+-------------------+
+|samples|start              |end                |
++-------+-------------------+-------------------+
+|715104 |2018-09-15 00:00:00|2018-11-07 23:00:00|
++-------+-------------------+-------------------+
+
+
+Test:
++-------+-------------------+-------------------+
+|samples|start              |end                |
++-------+-------------------+-------------------+
+|728856 |2018-11-08 00:00:00|2018-12-31 23:00:00|
++-------+-------------------+-------------------+
+
+Training samples: 3355488
+Validation samples: 715104
+Testing samples: 728856
+Config: {'numTrees': 50, 'maxDepth': 8} | MAE: 0.3387 | RMSE: 0.6996 | Training: 17.93s
+Config: {'numTrees': 100, 'maxDepth': 10} | MAE: 0.3351 | RMSE: 0.6981 | Training: 66.11s
+Config: {'numTrees': 100, 'maxDepth': 12} | MAE: 0.3335 | RMSE: 0.6990 | Training: 122.75s
+
+Best parameters: {'numTrees': 100, 'maxDepth': 10}
+
+=== RANDOM FOREST TEST RESULTS ===
+MAE:  0.4415 kWh
+RMSE: 0.9940 kWh
+Samples: 728856
+
+=== SEASONAL NAIVE COMPARISON ===
+Previous day: {'mae': 0.49113602824152397, 'rmse': 1.0948042977229018, 'count': 728856}
+Previous week: {'mae': 0.5261443659652962, 'rmse': 1.1747449081334993, 'count': 728856}
+
+=== FEATURE IMPORTANCE ===
+same_hour_yesterday      : 0.2706
+mean_24                  : 0.2303
+mean_168                 : 0.1922
+same_hour_last_week      : 0.1451
+lag_1                    : 0.0476
+lag_0                    : 0.0411
+target_hour              : 0.0195
+std_24                   : 0.0175
+horizon                  : 0.0154
+lag_24                   : 0.0101
+target_month             : 0.0073
+target_day_of_week       : 0.0032
