@@ -1,0 +1,63 @@
+Validation starts: 2018-09-15
+Testing starts: 2018-11-08
+
+Train:
++-------+-------------------+-------------------+
+|samples|start              |end                |
++-------+-------------------+-------------------+
+|3355488|2018-01-08 00:00:00|2018-09-14 23:00:00|
++-------+-------------------+-------------------+
+
+
+Validation:
++-------+-------------------+-------------------+
+|samples|start              |end                |
++-------+-------------------+-------------------+
+|715104 |2018-09-15 00:00:00|2018-11-07 23:00:00|
++-------+-------------------+-------------------+
+
+
+Test:
++-------+-------------------+-------------------+
+|samples|start              |end                |
++-------+-------------------+-------------------+
+|728856 |2018-11-08 00:00:00|2018-12-31 23:00:00|
++-------+-------------------+-------------------+
+
+Training samples: 3355488
+Validation samples: 715104
+Testing samples: 728856
+Config: {'numTrees': 50, 'maxDepth': 8} | MAE: 0.3392 | RMSE: 0.7011 | Training: 20.75s
+Config: {'numTrees': 100, 'maxDepth': 10} | MAE: 0.3328 | RMSE: 0.6956 | Training: 77.49s
+Config: {'numTrees': 100, 'maxDepth': 12} | MAE: 0.3293 | RMSE: 0.6921 | Training: 131.03s
+
+Best parameters: {'numTrees': 100, 'maxDepth': 12}
+
+=== RANDOM FOREST TEST RESULTS ===
+MAE:  0.4280 kWh
+RMSE: 0.9795 kWh
+Samples: 728856
+
+=== SEASONAL NAIVE COMPARISON ===
+Previous day: {'mae': 0.4911360282415238, 'rmse': 1.094804297722902, 'count': 728856}
+Previous week: {'mae': 0.5261443659652962, 'rmse': 1.1747449081334993, 'count': 728856}
+
+=== FEATURE IMPORTANCE ===
+mean_24                  : 0.2504
+same_hour_yesterday      : 0.2175
+same_hour_last_week      : 0.1501
+mean_168                 : 0.1406
+lag_0                    : 0.0514
+lag_1                    : 0.0347
+std_24                   : 0.0227
+lag_24                   : 0.0216
+target_hour              : 0.0199
+temp_lag_0               : 0.0190
+horizon                  : 0.0179
+temp_mean_168            : 0.0126
+temp_max_24              : 0.0095
+temp_mean_24             : 0.0086
+temp_lag_24              : 0.0078
+target_month             : 0.0066
+temp_min_24              : 0.0053
+target_day_of_week       : 0.0038
