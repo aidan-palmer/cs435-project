@@ -1,0 +1,22 @@
+{
+  "forecast_run_id": "frozen-UTC-weekly-profile-28d:2018-09-03T06:00:00+00:00/2018-10-01T06:00:00+00:00",
+  "pv_profile_id": "solar_generation_kwh from data/processed/resstock-pvwatts-2018",
+  "pv_capacity_kw": "4",
+  "emissions_source": "EPA eGRID2018 RMPA non-baseload C02; constant 0.6997 kg CO2/kWh; zero export credit",
+  "evaluation_start": "2018-10-01",
+  "evaluation_end": "2019-01-01",
+  "preparation": {
+    "input": "data/processed/resstock-pvwatts-2018",
+    "training_start_utc": "2018-09-03T06:00:00+00:00",
+    "training_end_utc_exclusive": "2018-10-01T06:00:00+00:00",
+    "evaluation_end_utc_exclusive": "2019-01-01T07:00:00+00:00",
+    "timezone": "America/Denver",
+    "forecast_clock": "UTC hour of week",
+    "building_count": 573,
+    "eligible_count": 382,
+    "uniform_installation_cost_usd": "10800.00",
+    "emissions_factor_kg_per_kwh": "0.6997",
+    "eligibility": "Single-Family Detached",
+    "method": "Frozen pre-evaluation weekday/hour demand mean; no evaluation demand used in prediction"
+  }
+}

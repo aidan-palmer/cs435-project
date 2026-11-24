@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SolarOpt · Allocation results</title>
+  <style>
+    :root { color-scheme: light dark; --paper: light-dark(#f2f6fc,#081424); --panel: light-dark(#fff,#15243a);
+      --ink: light-dark(#14243b,#eef5ff); --muted: light-dark(#425671,#b9cbe2); --border: light-dark(#c8d6e7,#405874);
+      --blue: light-dark(#2575bd,#70afff); --green: light-dark(#16704a,#65d8a4); --warning: light-dark(#854d0e,#ffd088);
+      font: 16px/1.5 system-ui,sans-serif; color:var(--ink); background:var(--paper); }
+    * { box-sizing:border-box; } [hidden] { display:none!important; } body { margin:0; }
+    main { width:min(100% - 2rem,69rem); margin:2.75rem auto 3rem; }
+    nav { display:flex; gap:1.25rem; margin-bottom:1.4rem; } nav a { color:var(--muted); text-decoration:none; padding-bottom:.3rem; }
+    nav a[aria-current] { color:var(--ink); border-bottom:3px solid var(--blue); font-weight:650; }
+    h1,h2,p { margin:0; } h1 { font-size:clamp(2rem,6vw,3.3rem); line-height:1.1; letter-spacing:-.045em; }
+    h2 { font-size:1.1rem; } header p { color:var(--muted); margin-top:.55rem; } header { margin-bottom:1.3rem; }
+    button,select { font:inherit; min-height:2.75rem; padding:.45rem .75rem; border:1px solid var(--border);
+      border-radius:.45rem; background:var(--panel); color:var(--ink); } button { cursor:pointer; font-weight:600; }
+    button:disabled { opacity:.55; cursor:default; } a { color:var(--blue); }
+    .toolbar,.selection-controls { display:flex; gap:.75rem; flex-wrap:wrap; align-items:end; }
+    label { display:grid; gap:.3rem; font-size:.85rem; font-weight:600; }
+    .panel { background:var(--panel); padding:1.1rem; border:1px solid var(--border); border-radius:1rem; margin-top:1rem; }
+    #status { min-height:1.5em; color:var(--muted); margin:.6rem 0; } #status[data-error=true] { color:var(--warning); }
+    .notice { padding:.8rem 1rem; border-left:4px solid var(--blue); background:var(--panel); border-radius:.35rem; font-size:.9rem; }
+    #example-notice { border-color:var(--warning); color:var(--warning); margin-bottom:.8rem; font-weight:650; }
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.8rem; margin:1rem 0; }
+    .metric { padding:1rem; background:var(--panel); border:1px solid var(--border); border-radius:.7rem; }
+    .metric dt { font-size:.8rem; color:var(--muted); } .metric dd { margin:.3rem 0 0; font-weight:650; font-size:clamp(1.2rem,2.3vw,1.65rem); font-variant-numeric:tabular-nums; }
+    .metric small { display:block; color:var(--muted); font-size:.78rem; margin-top:.25rem; }
+    #gain[data-negative=true] { color:var(--warning); }
+    .chart { display:grid; gap:1rem; margin:1.2rem 0 .8rem; }
+    .bar-label { display:flex; justify-content:space-between; gap:.75rem; font-size:.9rem; margin-bottom:.35rem; }
+    .track { height:1.4rem; background:var(--border); border-radius:.25rem; overflow:hidden; }
+    .fill { height:100%; width:0; } #priority-fill { background:var(--green); } #random-fill { background:var(--blue); }
+    .muted { color:var(--muted); font-size:.85rem; } .table-wrap { overflow-x:auto; margin-top:.8rem; }
+    table { width:100%; border-collapse:collapse; font-size:.85rem; } th,td { padding:.7rem .5rem; text-align:right; border-bottom:1px solid var(--border); font-variant-numeric:tabular-nums; }
+    th { color:var(--muted); font-weight:600; } th:first-child,td:first-child { text-align:left; } caption { text-align:left; color:var(--muted); padding:.3rem 0; }
+    .budget-track { height:.55rem; background:var(--border); border-radius:.2rem; overflow:hidden; margin:.65rem 0; }
+    #budget-fill { height:100%; background:var(--green); width:0; }
+    .pagination { display:flex; gap:.75rem; align-items:center; justify-content:flex-end; margin-top:.8rem; flex-wrap:wrap; }
+    .selection-controls { margin-top:.8rem; } details { margin-top:1rem; } summary { cursor:pointer; font-weight:600; }
+    #assumptions { display:grid; grid-template-columns:12rem minmax(0,1fr); gap:.4rem 1rem; font-size:.85rem; }
+    #assumptions dt { color:var(--muted); } #assumptions dd { margin:0; overflow-wrap:anywhere; }
+    code { overflow-wrap:anywhere; font-size:.85em; } .instructions { margin:.8rem 0 1rem; padding:.8rem; border:1px solid var(--border); border-radius:.4rem; }
+    .ranking-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:1.2rem; margin-top:1rem; }
+    #ranking-chart { display:grid; gap:.4rem; }
+    .rank-button { width:100%; text-align:left; font-size:.85rem; padding:.4rem .6rem; }
+    .rank-button[aria-pressed=true] { outline:2px solid var(--blue); outline-offset:1px; }
+    .rank-button .track { height:.4rem; margin-top:.3rem; }
+    .rank-button .fill { background:var(--blue); }
+    #home-detail { align-self:start; position:sticky; top:1rem; }
+    #home-facts { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; font-size:.85rem; }
+    #home-facts dt { color:var(--muted); } #home-facts dd { margin:0; overflow-wrap:anywhere; }
+    #home-detail p { margin:.6rem 0; } .home-bars { display:grid; gap:.7rem; margin:.8rem 0; }
+    #home-predicted-fill { background:var(--blue); } #home-realized-fill { background:var(--green); }
+    @media(max-width:45rem) { .ranking-layout { grid-template-columns:1fr; } #home-detail { position:static; } }
+    footer { color:var(--muted); font-size:.82rem; margin-top:1rem; }
+    @media(max-width:45rem) { .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } main { margin-top:1.5rem; } }
+    @media(max-width:28rem) { #assumptions { grid-template-columns:1fr; gap:.1rem; } #assumptions dd { margin-bottom:.5rem; } }
+  </style>
+</head>
+<body>
+<main>
+  <nav aria-label="Dashboard pages"><a href="/">Simulation</a><a href="/allocation" aria-current="page">Allocation results</a></nav>
+  <header><h1>Solar allocation</h1><p>Compare benefit-prioritized installations with random selection under the same budget.</p></header>
+  <div id="example-notice" class="notice" hidden>Synthetic example — preview only. These are not your project’s allocation results.</div>
+  <div class="toolbar">
+    <label>Benefit comparison<select id="benefit-view" disabled><option value="predicted_avoided_co2_kg">Predicted avoided CO₂</option><option value="realized_avoided_co2_kg">Held-out realized avoided CO₂</option></select></label>
+    <button type="button" id="refresh">Refresh results</button><button type="button" id="saved" hidden>Back to saved results</button>
+  </div>
+  <p id="status" role="status">Loading allocation results…</p>
+  <section id="empty" class="panel" hidden>
+    <h2>No allocation experiment loaded</h2><p class="muted">Generate a saved run with the allocator, then start the dashboard with that run’s output folder.</p>
+    <div class="instructions"><code>.venv/bin/python scripts/serve_grid_dashboard.py data/processed/grid-import-2018 --allocation-results data/processed/allocation-run-001</code></div>
+    <p class="muted">The run folder contains summary.json, strategy_results.csv, and selected_households.csv.</p>
+    <button type="button" id="example">Explore a synthetic example</button>
+  </section>
+  <div id="results" hidden>
+    <p id="evaluation" class="notice"></p>
+    <dl class="metrics">
+      <div class="metric"><dt>Budget cap</dt><dd id="budget">—</dd><small>Same cap for both strategies</small></div>
+      <div class="metric"><dt>Prioritized spending</dt><dd id="spent">—</dd><small id="unused">—</small></div>
+      <div class="metric"><dt>Prioritized installations</dt><dd id="homes">—</dd><small id="eligible">—</small></div>
+      <div class="metric"><dt id="gain-label">Predicted gain vs random mean</dt><dd id="gain">—</dd><small id="gain-percent">—</small></div>
+    </dl>
+    <section class="panel" aria-labelledby="comparison-heading">
+      <h2 id="comparison-heading">Avoided CO₂ comparison</h2><p id="period" class="muted"></p>
+      <div class="chart" role="img" id="benefit-chart" aria-label="Allocation benefit comparison">
+        <div><div class="bar-label"><span>Prioritized</span><strong id="priority-value">—</strong></div><div class="track"><div id="priority-fill" class="fill"></div></div></div>
+        <div><div class="bar-label"><span>Random selection · mean</span><strong id="random-value">—</strong></div><div class="track"><div id="random-fill" class="fill"></div></div></div>
+      </div>
+      <p id="random-range" class="muted"></p>
+      <div class="budget-track" role="img" id="budget-meter" aria-label="Prioritized budget use"><div id="budget-fill"></div></div>
+      <p class="muted">A shared budget cap can produce different spending and installation counts when household costs vary.</p>
+      <div class="table-wrap"><table><caption id="comparison-caption">Strategy comparison</caption><thead><tr><th>Strategy</th><th>Homes</th><th>Spent</th><th>Unused budget</th><th>Avoided CO₂ (kg)</th></tr></thead><tbody id="comparison-rows"></tbody></table></div>
+    </section>
+    <section class="panel" aria-labelledby="ranking-heading">
+      <h2 id="ranking-heading">Top 20 ranked households</h2>
+      <p class="muted">Ranked using predicted benefits only. Being in the top 20 does not mean a home received an installation. Select a household to explore its summary.</p>
+      <p id="ranking-status" class="muted"></p>
+      <div class="ranking-layout">
+        <div id="ranking-chart" role="group" aria-label="Select a ranked household"></div>
+        <section id="home-detail" aria-labelledby="home-title" hidden>
+          <h2 id="home-title"></h2><p id="home-summary"></p>
+          <dl id="home-facts"></dl>
+          <div class="home-bars">
+            <div><div class="bar-label"><span>Predicted avoided CO₂</span><strong id="home-predicted"></strong></div><div class="track"><div class="fill" id="home-predicted-fill"></div></div></div>
+            <div><div class="bar-label"><span>Realized avoided CO₂</span><strong id="home-realized"></strong></div><div class="track"><div class="fill" id="home-realized-fill"></div></div></div>
+          </div>
+          <p id="home-difference" class="muted"></p>
+          <a id="home-simulation" hidden>Explore this household in the simulation</a>
+        </section>
+      </div>
+      <details><summary>What do predicted, actual, and realized mean?</summary>
+        <p><strong>Predicted benefit:</strong> avoided CO₂ estimated using forecast electricity demand, the solar profile, and the emissions factor. This estimate determines the ranking.</p>
+        <p><strong>Actual demand:</strong> the held-out electricity-demand values in the source dataset. For these ResStock homes, these are simulated demand values, not household meter readings.</p>
+        <p><strong>Realized benefit:</strong> avoided CO₂ recalculated using that held-out demand and the same solar profile and emissions factor. It evaluates the prediction; it is still a modeled result, not measured emissions.</p>
+        <p>These saved runs count solar used by the household, with zero export credit. Benefits cover the stated evaluation period, not a full year or the system lifetime. A home without an installation has potential benefits shown here, not benefits delivered by this allocation.</p>
+      </details>
+    </section>
+    <section class="panel" aria-labelledby="selection-heading">
+      <h2 id="selection-heading">Selected households</h2>
+      <div class="selection-controls">
+        <label>Selection strategy<select id="strategy"><option value="prioritized">Prioritized</option><option value="random">Random baseline</option></select></label>
+        <label id="seed-label" hidden>Random seed<select id="seed"></select></label>
+      </div>
+      <p id="selection-scope" class="muted"></p>
+      <div class="table-wrap"><table><caption>Benefits cover the experiment period; costs are USD.</caption><thead><tr><th>Household</th><th>Benefit rank</th><th>Cost</th><th>Predicted CO₂ (kg)</th><th>Realized CO₂ (kg)</th></tr></thead><tbody id="selected-rows"></tbody></table></div>
+      <p id="no-homes" class="muted" hidden>No homes were selected for this strategy and budget.</p>
+      <div class="pagination"><button type="button" id="previous">Previous</button><span id="page-label" class="muted"></span><button type="button" id="next">Next</button></div>
+    </section>
+    <details class="panel"><summary>Experiment assumptions and method</summary><dl id="assumptions"></dl><p id="method" class="muted"></p></details>
+  </div>
+  <footer>Households are simulated ResStock records. A comparison based only on predicted benefits does not establish a realized environmental improvement.</footer>
+</main>
+<script>
+  const byId = id => document.getElementById(id);
+  const numberFormat = new Intl.NumberFormat('en-US', {maximumFractionDigits:2});
+  const moneyFormat = new Intl.NumberFormat('en-US', {style:'currency',currency:'USD'});
+  let example = new URLSearchParams(location.search).get('example') === '1';
+  let payload = null;
+  let requestedPage = 1;
+  let requestId = 0;
+  let selectedHomeId = null;
+  const numeric = value => { const number=Number(value); if(!Number.isFinite(number)) throw new Error('A result is outside the numeric display range.'); return number; };
+  const text = (id,value) => { byId(id).textContent=value; };
+  const average = values => values.reduce((sum,value)=>sum+value/values.length,0);
+  const cell = (row,value) => { const item=document.createElement('td'); item.textContent=value; row.append(item); return item; };
+  function showHome(home) {
+    selectedHomeId=home.building_id;
+    byId('home-detail').hidden=false;
+    const assumptions=payload.summary.assumptions;
+    const predicted=numeric(home.predicted_avoided_co2_kg);
+    const realized=home.realized_avoided_co2_kg===null?null:numeric(home.realized_avoided_co2_kg);
+    text('home-title','Household '+home.building_id+' · rank '+home.rank);
+    const run=payload.selection.strategy==='prioritized'?'prioritized allocation':'random run '+payload.selection.seed;
+    text('home-summary',(home.selected_in_run?'Selected in the current '+run+'.':'Not selected in the current '+run+'.')+' '+(home.selected_prioritized?'Funded by the prioritized allocation.':'Not funded by the prioritized allocation.'));
+    byId('home-facts').replaceChildren();
+    const facts=[['Installation cost',moneyFormat.format(numeric(home.installation_cost_usd))],['Predicted CO₂ per dollar',numberFormat.format(numeric(home.predicted_co2_kg_per_usd))+' kg/$'],['Solar system',assumptions.pv_capacity_kw+' kW'],['Evaluation period',assumptions.evaluation_start+' to '+assumptions.evaluation_end+' (end exclusive)']];
+    for(const [key,value] of Object.entries(home.details||{})) {
+      if(value && !key.startsWith('map_')) facts.push([key.replaceAll('_',' '),String(value)]);
+    }
+    facts.push(['Emissions source',assumptions.emissions_source]);
+    for(const [label,value] of facts) { const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;byId('home-facts').append(dt,dd); }
+    text('home-predicted',numberFormat.format(predicted)+' kg');
+    text('home-realized',realized===null?'Not supplied':numberFormat.format(realized)+' kg');
+    const maximum=Math.max(predicted,realized||0);
+    byId('home-predicted-fill').style.width=(maximum?predicted/maximum*100:0)+'%';
+    byId('home-realized-fill').style.width=(maximum&&realized!==null?realized/maximum*100:0)+'%';
+    text('home-difference',realized===null?'Held-out realized benefits were not supplied for this household.':'Realized minus predicted: '+numberFormat.format(realized-predicted)+' kg'+(predicted?' ('+numberFormat.format((realized-predicted)/predicted*100)+'%).':'.'));
+    byId('home-simulation').hidden=!home.in_simulation;
+    byId('home-simulation').href='/?'+new URLSearchParams({building:home.building_id});
+    for(const button of document.querySelectorAll('[data-household]')) button.setAttribute('aria-pressed',String(button.dataset.household===selectedHomeId));
+  }
+  function renderRanking() {
+    const ranking=payload.ranking;
+    byId('ranking-chart').replaceChildren();
+    text('ranking-status',ranking.available?'Showing '+ranking.homes.length+' of '+ranking.total+' eligible homes. Bars show '+(payload.summary.ranking==='benefit_per_dollar'?'predicted kg CO₂ per dollar.':'predicted kg CO₂.'):'Full rankings unavailable: this run has no ranked_households.csv. Selected household summaries are still available below.');
+    const field=payload.summary.ranking==='benefit_per_dollar'?'predicted_co2_kg_per_usd':'predicted_avoided_co2_kg';
+    const maximum=Math.max(0,...ranking.homes.map(home=>numeric(home[field])));
+    for(const home of ranking.homes) {
+      const button=document.createElement('button');button.type='button';button.className='rank-button';button.dataset.household=home.building_id;
+      button.setAttribute('aria-pressed',String(home.building_id===selectedHomeId));
+      const label=document.createElement('span');label.textContent='#'+home.rank+' · '+home.building_id+' · '+numberFormat.format(numeric(home[field]))+(field.endsWith('usd')?' kg/$':' kg')+(home.selected_in_run?' · Selected':'');
+      const track=document.createElement('div'),fill=document.createElement('div');track.className='track';fill.className='fill';fill.style.width=(maximum?numeric(home[field])/maximum*100:0)+'%';track.append(fill);button.append(label,track);
+      button.addEventListener('click',()=>showHome(home));byId('ranking-chart').append(button);
+    }
+    const homes=[...ranking.homes,...payload.selection.homes];
+    const home=homes.find(home=>home.building_id===selectedHomeId)||homes[0];
+    byId('home-detail').hidden=!home;if(home) showHome(home);
+  }
+  function render() {
+    const summary=payload.summary, rows=payload.results;
+    const priority=rows.find(row=>row.strategy==='prioritized');
+    const random=rows.filter(row=>row.strategy==='random');
+    const realized=rows.every(row=>row.realized_avoided_co2_kg!==null);
+    byId('benefit-view').options[1].disabled=!realized;
+    if(!realized) byId('benefit-view').value='predicted_avoided_co2_kg';
+    const basis=byId('benefit-view').value;
+    const label=basis.startsWith('predicted')?'Predicted':'Held-out realized';
+    const baseline=random.map(row=>numeric(row[basis]));
+    const randomMean=average(baseline), priorityBenefit=numeric(priority[basis]);
+    const rawGain=priorityBenefit-randomMean;
+    const gain=Math.abs(rawGain)<=Number.EPSILON*Math.max(1,priorityBenefit,randomMean)*random.length*2?0:rawGain;
+    const budget=numeric(summary.budget_usd), spent=numeric(priority.total_cost_usd);
+    text('budget',moneyFormat.format(budget)); text('spent',moneyFormat.format(spent));
+    text('unused',moneyFormat.format(numeric(priority.unspent_budget_usd))+' unused');
+    text('homes',priority.selected_count); text('eligible',summary.eligible_count+' eligible households');
+    text('gain-label',label+' gain vs random mean'); text('gain',numberFormat.format(gain)+' kg');
+    byId('gain').dataset.negative=String(gain<0);
+    text('gain-percent',randomMean===0?'Percentage unavailable: random mean is zero':numberFormat.format(gain/randomMean*100)+'% vs random mean');
+    text('evaluation',realized?'Predicted and held-out realized benefits are available. Realized values were used only for evaluation.':'Estimated benefits only. Held-out realized benefits were not supplied.');
+    text('comparison-heading',label+' avoided CO₂');
+    const assumptions=summary.assumptions;
+    text('period',assumptions.evaluation_start+' to '+assumptions.evaluation_end+' (end exclusive) · '+(summary.ranking==='benefit_per_dollar'?'Ranked by predicted CO₂ per dollar':'Ranked by total predicted CO₂'));
+    text('priority-value',numberFormat.format(priorityBenefit)+' kg'); text('random-value',numberFormat.format(randomMean)+' kg');
+    const maximum=Math.max(0,priorityBenefit,...baseline);
+    byId('priority-fill').style.width=(maximum?priorityBenefit/maximum*100:0)+'%';
+    byId('random-fill').style.width=(maximum?randomMean/maximum*100:0)+'%';
+    byId('benefit-chart').setAttribute('aria-label',label+' avoided CO2: prioritized '+priorityBenefit+' kg; random mean '+numberFormat.format(randomMean)+' kg.');
+    text('random-range',random.length+' seeded random runs · range '+numberFormat.format(Math.min(...baseline))+'–'+numberFormat.format(Math.max(...baseline))+' kg · mean shown above');
+    byId('budget-fill').style.width=(budget?spent/budget*100:0)+'%';
+    byId('budget-meter').setAttribute('aria-label','Prioritized spending '+moneyFormat.format(spent)+' of '+moneyFormat.format(budget));
+    text('comparison-caption',label+' benefits over the same evaluation period');
+    byId('comparison-rows').replaceChildren();
+    for(const [name,count,cost,unused,benefit] of [
+      ['Prioritized',priority.selected_count,spent,numeric(priority.unspent_budget_usd),priorityBenefit],
+      ['Random mean',average(random.map(row=>row.selected_count)),average(random.map(row=>numeric(row.total_cost_usd))),average(random.map(row=>numeric(row.unspent_budget_usd))),randomMean],
+    ]) { const row=document.createElement('tr'); for(const value of [name,numberFormat.format(count),moneyFormat.format(cost),moneyFormat.format(unused),numberFormat.format(benefit)]) cell(row,value); byId('comparison-rows').append(row); }
+    const selection=payload.selection;
+    byId('strategy').value=selection.strategy; byId('seed-label').hidden=selection.strategy!=='random';
+    byId('seed').replaceChildren(...random.map(row=>new Option(String(row.seed),String(row.seed))));
+    if(selection.seed!==null) byId('seed').value=String(selection.seed);
+    byId('strategy').disabled=false;byId('seed').disabled=false;
+    text('selection-scope',selection.total+' selected households · '+(selection.strategy==='prioritized'?'prioritized selection':'random seed '+selection.seed));
+    byId('selected-rows').replaceChildren();
+    for(const home of selection.homes) {
+      const row=document.createElement('tr'), name=cell(row,'');
+      const button=document.createElement('button');button.type='button';button.textContent=home.building_id;button.dataset.household=home.building_id;
+      button.addEventListener('click',()=>{showHome(home);byId('home-detail').scrollIntoView({behavior:'smooth',block:'nearest'});});name.append(button);
+      for(const value of [home.rank,moneyFormat.format(numeric(home.installation_cost_usd)),numberFormat.format(numeric(home.predicted_avoided_co2_kg)),home.realized_avoided_co2_kg===null?'—':numberFormat.format(numeric(home.realized_avoided_co2_kg))]) cell(row,value);
+      byId('selected-rows').append(row);
+    }
+    byId('no-homes').hidden=selection.total!==0; text('page-label','Page '+selection.page+' of '+selection.pages);
+    byId('previous').disabled=selection.page<=1; byId('next').disabled=selection.page>=selection.pages;
+    requestedPage=selection.page;
+    byId('assumptions').replaceChildren();
+    for(const [name,value] of [['Forecast run',assumptions.forecast_run_id],['PV profile',assumptions.pv_profile_id],['System capacity',assumptions.pv_capacity_kw+' kW'],['Emissions source',assumptions.emissions_source],['Evaluation period',assumptions.evaluation_start+' to '+assumptions.evaluation_end+' (exclusive)'],['Candidate CSV SHA-256',summary.input_sha256]]) {
+      const term=document.createElement('dt'), detail=document.createElement('dd'); term.textContent=name; detail.textContent=value; byId('assumptions').append(term,detail);
+    }
+    text('method',summary.method);
+    renderRanking();
+  }
+  async function load() {
+    const id=++requestId;
+    text('status','Loading allocation results…'); byId('status').dataset.error='false';
+    byId('benefit-view').disabled=true;
+    for(const control of ['strategy','seed','previous','next']) byId(control).disabled=true;
+    const params={example:example?'1':'0',strategy:byId('strategy').value,page:String(requestedPage)};
+    if(params.strategy==='random'&&byId('seed').value) params.seed=byId('seed').value;
+    try {
+      const response=await fetch('/api/allocation?'+new URLSearchParams(params));
+      const result=await response.json();
+      if(id!==requestId) return;
+      if(!response.ok) throw new Error(result.error||'Could not load allocation results.');
+      payload=result;
+      byId('results').hidden=!result.available; byId('empty').hidden=result.available;
+      byId('example-notice').hidden=!result.is_example; byId('saved').hidden=!result.is_example;
+      if(result.available) { render(); byId('benefit-view').disabled=false; }
+      text('status',result.available?'':'Choose a saved experiment or explore the labeled example.');
+    } catch(error) {
+      if(id!==requestId) return;
+      byId('results').hidden=true; byId('empty').hidden=false;
+      byId('example-notice').hidden=!example; byId('saved').hidden=!example;
+      byId('status').dataset.error='true'; text('status',error.message);
+      requestedPage=1;byId('strategy').value='prioritized';byId('seed').replaceChildren();
+    }
+  }
+  byId('benefit-view').addEventListener('change',()=>{try{render();}catch(error){text('status',error.message);}});
+  byId('refresh').addEventListener('click',()=>{requestedPage=1;load();});
+  byId('strategy').addEventListener('change',()=>{requestedPage=1;load();});
+  byId('seed').addEventListener('change',()=>{requestedPage=1;load();});
+  byId('previous').addEventListener('click',()=>{requestedPage--;load();});
+  byId('next').addEventListener('click',()=>{requestedPage++;load();});
+  function changeSource(isExample) { example=isExample;selectedHomeId=null;requestedPage=1;byId('strategy').value='prioritized';byId('seed').replaceChildren();history.replaceState(null,'',isExample?'/allocation?example=1':'/allocation');load(); }
+  byId('example').addEventListener('click',()=>changeSource(true));
+  byId('saved').addEventListener('click',()=>changeSource(false));
+  load();
+</script>
+</body>
+</html>

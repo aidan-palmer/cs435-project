@@ -15,9 +15,7 @@ venv/
 !.env.example
 
 # Data - do not commit source or generated large datasets
-data/raw/**
 data/interim/**
-data/processed/**
 !data/raw/.gitkeep
 !data/interim/.gitkeep
 !data/processed/.gitkeep

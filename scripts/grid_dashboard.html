@@ -28,6 +28,9 @@
     * { box-sizing: border-box; }
     body { margin: 0; }
     main { width: min(100% - 2rem, 69rem); margin: 2.75rem auto 3rem; }
+    .page-nav { display: flex; gap: 1.25rem; margin-bottom: 1.4rem; }
+    .page-nav a { color: var(--muted); text-decoration: none; padding-bottom: .3rem; }
+    .page-nav a[aria-current] { color: var(--ink); border-bottom: 3px solid var(--after); font-weight: 650; }
     header { margin-bottom: 1.4rem; }
     h1, h2, p { margin: 0; }
     h1 { font-size: clamp(2rem, 6vw, 3.3rem); line-height: 1.1; letter-spacing: -.045em; }
@@ -175,6 +178,9 @@
 </head>
 <body>
   <main>
+    <nav class="page-nav" aria-label="Dashboard pages">
+      <a href="/" aria-current="page">Simulation</a><a href="/allocation">Allocation results</a>
+    </nav>
     <header>
       <h1>Household grid import</h1>
       <p>ResStock demand with a representative 4 kW Fort Collins rooftop system.</p>
@@ -979,6 +985,8 @@
       drawReferencePoints();
       labeledCount = Object.keys(metadata.building_details).length;
       buildings = metadata.buildings.map(id => buildingChoice(id, metadata.building_details[id] || {}));
+      const initialBuilding = new URLSearchParams(location.search).get("building");
+      if (buildings.some(building => building.id === initialBuilding)) buildingSearch.value = "id " + initialBuilding;
       updateBuildingChoices();
       dayInput.min = metadata.first_day;
       dayInput.max = metadata.last_day;

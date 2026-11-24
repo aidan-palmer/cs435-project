@@ -15,8 +15,10 @@ from pyspark.sql import SparkSession, functions as F
 
 if __package__:
     from .pvwatts_api import FORT_COLLINS_POINTS
+    from .allocation_results import AllocationResults
 else:
     from pvwatts_api import FORT_COLLINS_POINTS
+    from allocation_results import AllocationResults
 
 
 MEASURES = (
@@ -230,7 +232,9 @@ class GridData:
         return {"day": result.day}
 
 
-def dashboard_handler(data, page):
+def dashboard_handler(data, page, allocations=None):
+    allocations = allocations if allocations is not None else AllocationResults()
+    allocation_page = Path(__file__).with_name("allocation_dashboard.html").read_bytes()
     class DashboardHandler(BaseHTTPRequestHandler):
         def send_content(self, status, content_type, body):
             self.send_response(status)
@@ -253,6 +257,21 @@ def dashboard_handler(data, page):
                     case "/":
                         self.send_content(HTTPStatus.OK, "text/html; charset=utf-8", page)
                         return
+                    case "/allocation" | "/allocation/":
+                        self.send_content(HTTPStatus.OK, "text/html; charset=utf-8", allocation_page)
+                        return
+                    case "/api/allocation":
+                        payload = allocations.view(
+                            example=query.get("example", ["0"])[0] == "1",
+                            strategy=query.get("strategy", ["prioritized"])[0],
+                            seed=query.get("seed", [None])[0],
+                            page=int(query.get("page", ["1"])[0]),
+                        )
+                        if payload["available"]:
+                            buildings = {str(building) for building in data.metadata["buildings"]}
+                            for home in payload["selection"]["homes"] + payload["ranking"]["homes"]:
+                                home["in_simulation"] = home["building_id"] in buildings
+                                home["details"] = data.metadata.get("building_details", {}).get(home["building_id"], {})
                     case "/api/metadata":
                         payload = data.metadata
                     case "/api/map-day":
@@ -281,6 +300,8 @@ def main():
     parser.add_argument(
         "--metadata", type=Path, help="Colorado ResStock baseline metadata CSV for building labels"
     )
+    parser.add_argument("--allocation-results", type=Path,
+                        help="Saved allocation output directory to show on /allocation")
     args = parser.parse_args()
 
     metadata_path = args.metadata
@@ -295,7 +316,7 @@ def main():
             grid = GridData(spark.read.parquet(args.hourly), metadata_path)
         except (OSError, ValueError) as error:
             parser.error(str(error))
-        with HTTPServer(("127.0.0.1", args.port), dashboard_handler(grid, page)) as server:
+        with HTTPServer(("127.0.0.1", args.port), dashboard_handler(grid, page, AllocationResults(args.allocation_results))) as server:
             print(f"Grid dashboard ready at http://127.0.0.1:{server.server_port}", flush=True)
             try:
                 server.serve_forever()
