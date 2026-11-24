@@ -14,11 +14,13 @@ class DashboardHTMLTest(unittest.TestCase):
             def handle_starttag(self, tag, attrs):
                 self.ids.extend(value for name, value in attrs if name == 'id')
 
-        parser = IDs()
-        page = Path(__file__).resolve().parents[1] / 'scripts' / 'grid_dashboard.html'
-        parser.feed(page.read_text())
-        duplicates = [name for name, count in Counter(parser.ids).items() if count > 1]
-        self.assertEqual(duplicates, [], 'Duplicate IDs can cause summary updates to destroy a map')
+        for name in ('grid_dashboard.html', 'allocation_dashboard.html'):
+            with self.subTest(page=name):
+                parser = IDs()
+                page = Path(__file__).resolve().parents[1] / 'scripts' / name
+                parser.feed(page.read_text())
+                duplicates = [key for key, count in Counter(parser.ids).items() if count > 1]
+                self.assertEqual(duplicates, [], 'Duplicate IDs can send updates to the wrong component')
 
 
 if __name__ == '__main__':

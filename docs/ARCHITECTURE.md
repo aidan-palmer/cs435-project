@@ -216,24 +216,13 @@ src/simulation/emissions.py
 
 ### 8. Fixed-budget allocation
 
-At minimum compare:
+The implemented entry point is `scripts/allocate_solar.py`. It consumes a scored household CSV and an explicit experiment-assumptions JSON. See [ALLOCATION.md](ALLOCATION.md) for schemas, formulas, commands, and saved artifacts.
 
-1. random allocation;
-2. predicted-benefit prioritization.
+The default prioritized strategy ranks by predicted avoided CO2 per USD; a total-predicted-benefit ranking is also available. It selects whole installations using exact cent arithmetic, skips homes that do not fit the remaining budget, and continues down the ranking. This is a greedy heuristic rather than a globally optimal knapsack solver.
 
-Potential score:
+A seeded random baseline uses the identical eligible pool and budget cap, with 100 runs by default. Results record selected households, estimated benefits, spending, remaining budget, seeds, and gains against the random mean. Variable installation costs may lead to different counts and spending under the same cap.
 
-```text
-predicted_benefit_per_dollar = predicted_avoided_co2 / installation_cost
-```
-
-A key evaluation requirement is that households selected using predictions are scored on **held-out realized demand**, not only on their predicted benefit.
-
-Suggested module:
-
-```text
-src/allocation/strategies.py
-```
+Optional held-out realized benefits are used only to evaluate the selected homes. They never participate in ranking or random selection. Runs without realized outcomes are explicitly labeled estimated-only. The allocator does not derive scores from realized demand or introduce default installation costs or emissions factors; upstream forecast-derived scoring and the emissions methodology remain explicit inputs.
 
 ### 9. Evaluation and reporting
 
