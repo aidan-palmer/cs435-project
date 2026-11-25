@@ -1,0 +1,9 @@
++----------+------+
+|     split| count|
++----------+------+
+|     train|139239|
+|validation| 30942|
+|      test| 30369|
++----------+------+
+
+Saved LSTM sequences to: hdfs:///solaropt/lstm_sequences
