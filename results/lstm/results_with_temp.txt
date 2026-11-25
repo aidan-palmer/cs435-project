@@ -1,0 +1,18 @@
+Training sequences: 139239
+Validation sequences: 30942
+Testing sequences: 30369
+Training steps per epoch: 1088
+Validation steps: 242
+
+=== LSTM TEST RESULTS ===
+{
+  "model": "lstm_temperature",
+  "mae": 0.4114688823343091,
+  "rmse": 0.8836325629778101,
+  "num_predictions": 728856,
+  "num_forecasts": 30369,
+  "seasonal_naive_day_mae": 0.4911360282415186,
+  "seasonal_naive_day_rmse": 1.0948042977229038,
+  "seasonal_naive_week_mae": 0.5261443659652907,
+  "seasonal_naive_week_rmse": 1.174744908133494
+}
