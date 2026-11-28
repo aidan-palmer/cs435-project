@@ -6,6 +6,11 @@ from pyspark.sql import SparkSession, functions as F
 from pyspark.sql.types import TimestampType
 
 
+if __package__:
+    from .hourly_alignment import est_2018_to_utc
+else:
+    from hourly_alignment import est_2018_to_utc
+
 HOURS_PER_YEAR = 8760
 EST_LABEL_START = "2018-01-01 00:00:00"
 EST_LABEL_END = "2019-01-01 00:00:00"
@@ -83,14 +88,10 @@ def read_demand(spark, path):
     # The pilot stores EST wall-clock labels in Spark's UTC session. Add five
     # hours to obtain actual UTC, then restore the first two wrapped hours
     # to December 31 in Colorado. Keep the original label for traceability.
-    utc_hour = label + F.expr("INTERVAL 5 HOURS")
     return demand.select(
         "building_id",
         F.date_format(label, "yyyy-MM-dd'T'HH:mm:ss").alias("resstock_hour_label_est"),
-        F.when(
-            utc_hour < F.lit(COLORADO_UTC_START).cast("timestamp"),
-            utc_hour + F.expr("INTERVAL 365 DAYS"),
-        ).otherwise(utc_hour).alias("hour_start_utc"),
+        est_2018_to_utc(label).alias("hour_start_utc"),
         "demand_kwh",
     ), coverage.buildings
 

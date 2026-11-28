@@ -168,3 +168,15 @@ From the proposal:
 - aggregate grid imports before and after solar;
 - avoided CO2 versus installation budget;
 - geographic or household-segment summaries when supported by the available data.
+
+## Recorded LSTM evaluations
+
+The merged LSTM training contribution and saved metrics are documented in [LSTM.md](LSTM.md). Run `python scripts/summarize_forecasts.py --output outputs/metrics/forecast_test_metrics.csv` to regenerate the six-model comparison from saved RF and LSTM logs. This summary does not rerun training or establish matched target keys.
+
+## Aligned experiments and remaining priorities
+
+See [the experiment workflow](PRIORITY_EXPERIMENTS.md) for the shared hourly correction, model-to-allocation adapter, matched RF/LSTM commands, executed sensitivity scenarios, and measured runtime phases. Existing saved forecast logs are retained separately from the new aligned pilot.
+
+## Frozen final study
+
+Use [FINAL_STUDY.md](FINAL_STUDY.md) and `configs/final-study-v1.json` for the exact final protocol. Forecast accuracy, pre-decision planning, retrospective diagnostics, housing scope, and controlled size scaling are separate evaluations with explicit artifact boundaries.

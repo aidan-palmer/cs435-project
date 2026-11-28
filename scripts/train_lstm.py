@@ -3,6 +3,12 @@ import argparse
 import json
 from pathlib import Path
 import math
+import time
+
+if __package__:
+    from .runtime_evidence import save_runtime
+else:
+    from runtime_evidence import save_runtime
 
 import numpy as np
 import pyarrow as pa
@@ -206,16 +212,18 @@ def evaluate_and_save(
     stats,
     use_temperature,
     output_dir,
-    batch_size
+    batch_size,
+    filename="predictions.parquet"
 ):
     """Evaluate in kWh and write hourly predictions to Parquet."""
 
-    output_file = output_dir / "predictions.parquet"
+    output_file = output_dir / filename
 
     schema = pa.schema([
         ("building_id", pa.string()),
         ("forecast_issued_at", pa.timestamp("us")),
         ("target_timestamp", pa.timestamp("us")),
+        ("forecast_available_at", pa.timestamp("us")),
         ("horizon", pa.int32()),
         ("actual_kwh", pa.float32()),
         ("predicted_kwh", pa.float32()),
@@ -234,6 +242,7 @@ def evaluate_and_save(
     week_sq_sum = 0.0
     count = 0
     num_forecasts = 0
+    prediction_model_calls_seconds = 0.0
 
     # Accumulate one manageable batch of complete forecasts.
     batch_records = []
@@ -242,7 +251,7 @@ def evaluate_and_save(
         nonlocal abs_sum, sq_sum
         nonlocal day_abs_sum, day_sq_sum
         nonlocal week_abs_sum, week_sq_sum
-        nonlocal count, num_forecasts
+        nonlocal count, num_forecasts, prediction_model_calls_seconds
 
         encoded = [
             encode_record(r, stats, use_temperature)[0]
@@ -252,7 +261,9 @@ def evaluate_and_save(
         X = np.stack(encoded, axis=0)
 
         # Model outputs normalized electricity demand.
-        pred_scaled = model.predict_on_batch(X)
+        model_started=time.perf_counter()
+        pred_scaled = np.asarray(model.predict_on_batch(X))
+        prediction_model_calls_seconds += time.perf_counter()-model_started
 
         predicted = (
             pred_scaled * stats["demand_std"]
@@ -304,6 +315,7 @@ def evaluate_and_save(
                     "target_timestamp": (
                         issued_at + timedelta(hours=h + 1)
                     ),
+                    "forecast_available_at": issued_at + timedelta(hours=1),
                     "horizon": h + 1,
                     "actual_kwh": float(actual[h]),
                     "predicted_kwh": float(forecast[h]),
@@ -344,6 +356,7 @@ def evaluate_and_save(
         "rmse": np.sqrt(sq_sum / count),
         "num_predictions": count,
         "num_forecasts": num_forecasts,
+        "prediction_model_calls_seconds": prediction_model_calls_seconds,
         "seasonal_naive_day_mae": day_abs_sum / count,
         "seasonal_naive_day_rmse": np.sqrt(
             day_sq_sum / count
@@ -381,13 +394,18 @@ def main():
         "--patience", type=int, default=5
     )
 
+    parser.add_argument('--runtime-output', help='New local runtime/configuration JSON')
     args = parser.parse_args()
+    if min(args.epochs,args.batch_size,args.patience)<1 or args.learning_rate<=0:
+        parser.error('Epochs, batch size, patience, and learning rate must be positive')
+    processing_start=time.perf_counter()
+    phases={}
 
     tf.keras.utils.set_random_seed(42)
 
     input_dir = Path(args.input)
     output_dir = Path(args.output)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=False)
 
     train_dir = input_dir / "split=train"
     val_dir = input_dir / "split=validation"
@@ -461,6 +479,8 @@ def main():
         )
     ]
 
+    phases['processing_seconds']=time.perf_counter()-processing_start
+    training_start=time.perf_counter()
     # Train on chronological train data.
     # Validate only on the held-out validation dates.
     history = model.fit(
@@ -473,7 +493,8 @@ def main():
         callbacks=callbacks
     )
 
-    model.save(str(output_dir / "model.keras"))
+    phases['training_seconds']=time.perf_counter()-training_start
+    model.save(str(output_dir / 'model.keras'))
 
     with open(output_dir / "history.json", "w") as f:
         json.dump(
@@ -486,6 +507,7 @@ def main():
         )
 
     # Evaluate on the untouched test period.
+    inference_start=time.perf_counter()
     metrics = evaluate_and_save(
         model,
         test_dir,
@@ -495,7 +517,21 @@ def main():
         args.batch_size
     )
 
-    with open(output_dir / "metrics.json", "w") as f:
+    phases['prediction_metrics_and_export_seconds']=time.perf_counter()-inference_start
+    phases['prediction_model_calls_seconds']=metrics['prediction_model_calls_seconds']
+    validation_started=time.perf_counter()
+    validation_metrics=evaluate_and_save(model,val_dir,stats,args.use_temperature,output_dir,args.batch_size,filename='validation_predictions.parquet')
+    (output_dir/'validation_metrics.json').write_text(json.dumps(validation_metrics,indent=2))
+    phases['validation_prediction_export_seconds']=time.perf_counter()-validation_started
+    save_runtime(args.runtime_output or output_dir/'runtime.json',phases,
+        dict(input=args.input,output=args.output,use_temperature=args.use_temperature,
+             epochs_requested=args.epochs,epochs_completed=len(history.history['loss']),
+             batch_size=args.batch_size,learning_rate=args.learning_rate,patience=args.patience,
+             seed=42,timestamp_clock='UTC',train_sequences=n_train,validation_sequences=n_val,
+             test_sequences=n_test,tensorflow=tf.__version__,
+             sequence_metadata=json.loads((input_dir/'_sequence_metadata.json').read_text())
+                 if (input_dir/'_sequence_metadata.json').exists() else None))
+    with open(output_dir / 'metrics.json', 'w') as f:
         json.dump(
             {
                 key: (

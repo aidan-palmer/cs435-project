@@ -7,6 +7,11 @@ from pathlib import Path
 from pyspark.sql import SparkSession, Window, functions as F
 
 
+if __package__:
+    from .hourly_alignment import aggregate_intervals
+else:
+    from hourly_alignment import aggregate_intervals
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("profiles", type=Path)
@@ -63,13 +68,7 @@ def main():
         ).where((F.col("delta") != 900) | (F.col("seconds") % 900 != 0))
         if gaps.limit(1).count():
             raise ValueError("Duplicate, missing or misaligned 15-minute intervals")
-        hourly = data.withColumn(
-            "hour_start", F.date_trunc("hour", F.expr("interval_end - INTERVAL 15 MINUTES"))
-        ).groupBy("building_id", "hour_start").agg(
-            F.sum("interval_kwh").alias("demand_kwh"), F.count("*").alias("intervals")
-        ).cache()
-        if hourly.where(F.col("intervals") != 4).limit(1).count():
-            raise ValueError("Incomplete hourly bins")
+        hourly = aggregate_intervals(data).cache()
         data.groupBy("building_id").agg(
             F.count("*").alias("intervals"), F.min("interval_end"), F.max("interval_end"),
             F.sum("interval_kwh").alias("source_kwh")

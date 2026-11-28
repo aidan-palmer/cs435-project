@@ -1,5 +1,14 @@
 import argparse
 import time
+import json
+from datetime import date
+
+if __package__:
+    from .runtime_evidence import save_runtime
+    from .housing_features import join_housing
+else:
+    from runtime_evidence import save_runtime
+    from housing_features import join_housing
 
 from pyspark.sql import SparkSession, functions as F
 from pyspark.sql.window import Window
@@ -288,6 +297,14 @@ def evaluate(predictions):
     }
 
 
+def write_json(spark,path,value):
+    target=spark._jvm.org.apache.hadoop.fs.Path(path)
+    fs=target.getFileSystem(spark._jsc.hadoopConfiguration())
+    stream=fs.create(target,False)
+    stream.write(bytearray(json.dumps(value,indent=2).encode('utf-8')))
+    stream.close()
+
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -298,11 +315,27 @@ def main():
         action="store_true",
         help="Include historical temperature features"
     )
+    parser.add_argument('--val-start', help='Explicit first validation UTC date')
+    parser.add_argument('--test-start', help='Explicit first test UTC date')
+    parser.add_argument('--runtime-output', help='New local runtime/configuration JSON')
+    parser.add_argument('--prepared-features',help='Reuse the same materialized full-cohort feature keys')
+    parser.add_argument('--use-housing',action='store_true')
+    parser.add_argument('--metadata',help='Baseline housing metadata CSV')
+    parser.add_argument('--num-trees',type=int,help='Fixed configuration for scaling runs')
+    parser.add_argument('--max-depth',type=int,help='Fixed configuration for scaling runs')
     args = parser.parse_args()
+    if args.use_housing and not args.metadata:parser.error('--use-housing requires --metadata')
+    if bool(args.num_trees)!=bool(args.max_depth):parser.error('Supply both fixed RF settings')
+    if bool(args.val_start) != bool(args.test_start):
+        parser.error('Supply both --val-start and --test-start')
+    if args.val_start and date.fromisoformat(args.val_start) >= date.fromisoformat(args.test_start):
+        parser.error('--val-start must precede --test-start')
+    phases = {}
+    processing_start = time.perf_counter()
     
     if args.use_temperature:
         global feature_cols
-        feature_cols += TEMP_FEATURE_COLS
+        feature_cols = BASE_FEATURE_COLS + TEMP_FEATURE_COLS
 
     spark = (
         SparkSession.builder
@@ -310,14 +343,21 @@ def main():
         .getOrCreate()
     )
 
+    spark.conf.set('spark.sql.session.timeZone','UTC')
+
     # Read hourly data.
     hourly = spark.read.parquet(args.input)
 
+    processing_start=time.perf_counter()
     # Generate features and labels.
-    features = build_features(hourly)
+    features = spark.read.parquet(args.prepared_features) if args.prepared_features else build_features(hourly)
+    housing_inventory=None
+    if args.use_housing:
+        features,housing_columns,housing_inventory=join_housing(features,args.metadata)
+        feature_cols.extend(housing_columns)
 
     # Save features so we can reuse them later.
-    features.write.mode("overwrite").parquet(
+    features.write.mode("errorifexists").parquet(
         args.output + "/features"
     )
 
@@ -344,8 +384,8 @@ def main():
     train_end = int(n * 0.70)
     val_end = int(n * 0.85)
 
-    val_start = dates[train_end]
-    test_start = dates[val_end]
+    val_start = date.fromisoformat(args.val_start) if args.val_start else dates[train_end]
+    test_start = date.fromisoformat(args.test_start) if args.test_start else dates[val_end]
 
     print(f"Validation starts: {val_start}")
     print(f"Testing starts: {test_start}")
@@ -383,13 +423,14 @@ def main():
         handleInvalid="error"
     )
 
-    train = assembler.transform(train).persist(
+    train = assembler.transform(train).select('features','label').persist(
         StorageLevel.MEMORY_AND_DISK
     )
-    validation = assembler.transform(validation).persist(
+    retained=['building_id','forecast_issued_at','target_timestamp','horizon','features','label','same_hour_yesterday','same_hour_last_week']
+    validation = assembler.transform(validation).select(*retained).persist(
         StorageLevel.MEMORY_AND_DISK
     )
-    test = assembler.transform(test).persist(
+    test = assembler.transform(test).select(*retained).persist(
         StorageLevel.MEMORY_AND_DISK
     )
 
@@ -404,12 +445,19 @@ def main():
     if min(n_train, n_val, n_test) == 0:
         raise ValueError("One or more data splits are empty")
 
+    phases['processing_seconds'] = time.perf_counter() - processing_start
+    tuning_start = time.perf_counter()
+    trial_timings = []
+
     # Compare a few hyperparameter configurations.
     configurations = [
         {"numTrees": 50, "maxDepth": 8},
         {"numTrees": 100, "maxDepth": 10},
         {"numTrees": 100, "maxDepth": 12}
     ]
+
+    if args.num_trees:
+        configurations=[dict(numTrees=args.num_trees,maxDepth=args.max_depth)]
 
     best_model = None
     best_config = None
@@ -429,6 +477,7 @@ def main():
         model = rf.fit(train)
         training_seconds = time.perf_counter() - start
 
+        trial_timings.append(dict(config=config, training_seconds=training_seconds))
         val_predictions = model.transform(validation)
         metrics = evaluate(val_predictions)
 
@@ -446,17 +495,35 @@ def main():
 
     print(f"\nBest parameters: {best_config}")
 
+    phases['tuning_training_and_validation_seconds'] = time.perf_counter() - tuning_start
+    phases['selected_model_training_seconds'] = next(t['training_seconds'] for t in trial_timings if t['config']==best_config)
+    inference_start = time.perf_counter()
+
     # Evaluate only the selected model on test data.
     predictions = best_model.transform(test).persist(
         StorageLevel.MEMORY_AND_DISK
     )
 
+    # The aggregate forces Spark to execute predictions inside this timer.
+    predictions.agg(F.sum('prediction').alias('checksum')).first()
+    phases['prediction_materialization_seconds']=time.perf_counter()-inference_start
     test_metrics = evaluate(predictions)
+    phases['prediction_and_test_metrics_seconds'] = time.perf_counter() - inference_start
 
     print("\n=== RANDOM FOREST TEST RESULTS ===")
     print(f"MAE:  {test_metrics['mae']:.4f} kWh")
     print(f"RMSE: {test_metrics['rmse']:.4f} kWh")
     print(f"Samples: {test_metrics['count']}")
+
+    # Preserve exact selected-model validation forecasts for pre-decision planning.
+    validation_start=time.perf_counter()
+    validation_output=best_model.transform(validation).select(
+        'building_id','forecast_issued_at','target_timestamp','horizon',
+        F.col('label').alias('actual_kwh'),F.col('prediction').alias('predicted_kwh'))
+    validation_output.write.mode('errorifexists').parquet(args.output+'/validation_predictions')
+    phases['validation_prediction_export_seconds']=time.perf_counter()-validation_start
+    write_json(spark,args.output+'/metrics.json',dict(test_metrics,model='rf_housing' if args.use_housing else ('rf_temperature' if args.use_temperature else 'rf'),best_config=best_config,val_start=str(val_start),test_start=str(test_start)))
+    if housing_inventory:write_json(spark,args.output+'/housing_features.json',housing_inventory)
 
     # Evaluate seasonal naive on identical test rows.
     naive_day = evaluate(
@@ -477,7 +544,7 @@ def main():
     print("Previous week:", naive_week)
 
     # Save the trained model.
-    best_model.write().overwrite().save(
+    best_model.write().save(
         args.output + "/model"
     )
 
@@ -492,12 +559,23 @@ def main():
             F.col("label").alias("actual_kwh"),
             F.col("prediction").alias("predicted_kwh")
         )
-        .withColumn("model", F.lit("random_forest"))
+        .withColumn("model", F.lit("random_forest_housing" if args.use_housing else ("random_forest_temperature" if args.use_temperature else "random_forest")))
+        .withColumn("forecast_available_at", F.expr("forecast_issued_at + INTERVAL 1 HOUR"))
     )
 
-    output_predictions.write.mode("overwrite").parquet(
+    export_start = time.perf_counter()
+    output_predictions.write.mode("errorifexists").parquet(
         args.output + "/predictions"
     )
+
+    phases['prediction_export_seconds'] = time.perf_counter() - export_start
+    if args.runtime_output:
+        save_runtime(args.runtime_output, phases,
+            dict(input=args.input,output=args.output,use_temperature=args.use_temperature,
+                 use_housing=args.use_housing,housing_inventory=housing_inventory,
+                 val_start=str(val_start),test_start=str(test_start),timestamp_clock='UTC',
+                 seed=42,features=feature_cols,best_config=best_config,trials=trial_timings,
+                 train_rows=n_train,validation_rows=n_val,test_rows=n_test),spark)
 
     # Print feature importances.
     print("\n=== FEATURE IMPORTANCE ===")

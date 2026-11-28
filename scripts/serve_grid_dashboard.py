@@ -16,9 +16,11 @@ from pyspark.sql import SparkSession, functions as F
 if __package__:
     from .pvwatts_api import FORT_COLLINS_POINTS
     from .allocation_results import AllocationResults
+    from .study_results import StudyResults, DEFAULT_RESULTS
 else:
     from pvwatts_api import FORT_COLLINS_POINTS
     from allocation_results import AllocationResults
+    from study_results import StudyResults, DEFAULT_RESULTS
 
 
 MEASURES = (
@@ -232,9 +234,11 @@ class GridData:
         return {"day": result.day}
 
 
-def dashboard_handler(data, page, allocations=None):
+def dashboard_handler(data, page, allocations=None, study=None):
+    study = study if study is not None else StudyResults()
     allocations = allocations if allocations is not None else AllocationResults()
     allocation_page = Path(__file__).with_name("allocation_dashboard.html").read_bytes()
+    results_page = Path(__file__).with_name("results_dashboard.html").read_bytes()
     class DashboardHandler(BaseHTTPRequestHandler):
         def send_content(self, status, content_type, body):
             self.send_response(status)
@@ -260,8 +264,24 @@ def dashboard_handler(data, page, allocations=None):
                     case "/allocation" | "/allocation/":
                         self.send_content(HTTPStatus.OK, "text/html; charset=utf-8", allocation_page)
                         return
+                    case "/results" | "/results/":
+                        self.send_content(HTTPStatus.OK, "text/html; charset=utf-8", results_page)
+                        return
+                    case "/api/results":
+                        payload = study.view()
+                    case "/api/results/forecast":
+                        payload = study.forecast(query.get("building",[""])[0],query.get("date",[""])[0])
+                    case "/api/results/download":
+                        filename,body=study.download(query.get("name",[""])[0])
+                        self.send_response(HTTPStatus.OK)
+                        self.send_header("Content-Type","application/json" if filename.endswith('.json') else "text/csv; charset=utf-8")
+                        self.send_header("Content-Disposition",f'attachment; filename="{filename}"')
+                        self.send_header("Content-Length",str(len(body)))
+                        self.end_headers();self.wfile.write(body)
+                        return
                     case "/api/allocation":
-                        payload = allocations.view(
+                        selected = study.allocation(query["experiment"][0]) if "experiment" in query else allocations
+                        payload = selected.view(
                             example=query.get("example", ["0"])[0] == "1",
                             strategy=query.get("strategy", ["prioritized"])[0],
                             seed=query.get("seed", [None])[0],
@@ -302,6 +322,7 @@ def main():
     )
     parser.add_argument("--allocation-results", type=Path,
                         help="Saved allocation output directory to show on /allocation")
+    parser.add_argument("--study-results",type=Path,default=DEFAULT_RESULTS,help="Generated statistics bundle shown on /results")
     args = parser.parse_args()
 
     metadata_path = args.metadata
@@ -316,7 +337,7 @@ def main():
             grid = GridData(spark.read.parquet(args.hourly), metadata_path)
         except (OSError, ValueError) as error:
             parser.error(str(error))
-        with HTTPServer(("127.0.0.1", args.port), dashboard_handler(grid, page, AllocationResults(args.allocation_results))) as server:
+        with HTTPServer(("127.0.0.1", args.port), dashboard_handler(grid, page, AllocationResults(args.allocation_results), StudyResults(args.study_results))) as server:
             print(f"Grid dashboard ready at http://127.0.0.1:{server.server_port}", flush=True)
             try:
                 server.serve_forever()

@@ -14,7 +14,7 @@ class DashboardHTMLTest(unittest.TestCase):
             def handle_starttag(self, tag, attrs):
                 self.ids.extend(value for name, value in attrs if name == 'id')
 
-        for name in ('grid_dashboard.html', 'allocation_dashboard.html'):
+        for name in ('grid_dashboard.html', 'allocation_dashboard.html', 'results_dashboard.html'):
             with self.subTest(page=name):
                 parser = IDs()
                 page = Path(__file__).resolve().parents[1] / 'scripts' / name

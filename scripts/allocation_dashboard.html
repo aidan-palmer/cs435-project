@@ -62,7 +62,7 @@
 </head>
 <body>
 <main>
-  <nav aria-label="Dashboard pages"><a href="/">Simulation</a><a href="/allocation" aria-current="page">Allocation results</a></nav>
+  <nav aria-label="Dashboard pages"><a href="/">Simulation</a><a href="/allocation" aria-current="page">Allocation results</a><a href="/results">Study results</a></nav>
   <header><h1>Solar allocation</h1><p>Compare benefit-prioritized installations with random selection under the same budget.</p></header>
   <div id="example-notice" class="notice" hidden>Synthetic example — preview only. These are not your project’s allocation results.</div>
   <div class="toolbar">
@@ -142,6 +142,7 @@
   let payload = null;
   let requestedPage = 1;
   let requestId = 0;
+  let initialBenefitApplied = false;
   let selectedHomeId = null;
   const numeric = value => { const number=Number(value); if(!Number.isFinite(number)) throw new Error('A result is outside the numeric display range.'); return number; };
   const text = (id,value) => { byId(id).textContent=value; };
@@ -170,6 +171,7 @@
     byId('home-realized-fill').style.width=(maximum&&realized!==null?realized/maximum*100:0)+'%';
     text('home-difference',realized===null?'Held-out realized benefits were not supplied for this household.':'Realized minus predicted: '+numberFormat.format(realized-predicted)+' kg'+(predicted?' ('+numberFormat.format((realized-predicted)/predicted*100)+'%).':'.'));
     byId('home-simulation').hidden=!home.in_simulation;
+    byId('home-simulation').textContent=numeric(assumptions.pv_capacity_kw)===4?'Explore this household in the 4 kW simulation':'Explore this household in the separate 4 kW simulation';
     byId('home-simulation').href='/?'+new URLSearchParams({building:home.building_id});
     for(const button of document.querySelectorAll('[data-household]')) button.setAttribute('aria-pressed',String(button.dataset.household===selectedHomeId));
   }
@@ -250,14 +252,17 @@
       const term=document.createElement('dt'), detail=document.createElement('dd'); term.textContent=name; detail.textContent=value; byId('assumptions').append(term,detail);
     }
     text('method',summary.method);
+    if(assumptions.decision_mode) text('period',byId('period').textContent+' · '+assumptions.decision_mode);
     renderRanking();
   }
+  const selectedExperiment=new URLSearchParams(location.search).get('experiment');
   async function load() {
     const id=++requestId;
     text('status','Loading allocation results…'); byId('status').dataset.error='false';
     byId('benefit-view').disabled=true;
     for(const control of ['strategy','seed','previous','next']) byId(control).disabled=true;
     const params={example:example?'1':'0',strategy:byId('strategy').value,page:String(requestedPage)};
+    if(selectedExperiment&&!example) params.experiment=selectedExperiment;
     if(params.strategy==='random'&&byId('seed').value) params.seed=byId('seed').value;
     try {
       const response=await fetch('/api/allocation?'+new URLSearchParams(params));
@@ -265,6 +270,7 @@
       if(id!==requestId) return;
       if(!response.ok) throw new Error(result.error||'Could not load allocation results.');
       payload=result;
+      if(!initialBenefitApplied&&new URLSearchParams(location.search).get('benefit')==='realized'){byId('benefit-view').value='realized_avoided_co2_kg';initialBenefitApplied=true;}
       byId('results').hidden=!result.available; byId('empty').hidden=result.available;
       byId('example-notice').hidden=!result.is_example; byId('saved').hidden=!result.is_example;
       if(result.available) { render(); byId('benefit-view').disabled=false; }
@@ -283,7 +289,7 @@
   byId('seed').addEventListener('change',()=>{requestedPage=1;load();});
   byId('previous').addEventListener('click',()=>{requestedPage--;load();});
   byId('next').addEventListener('click',()=>{requestedPage++;load();});
-  function changeSource(isExample) { example=isExample;selectedHomeId=null;requestedPage=1;byId('strategy').value='prioritized';byId('seed').replaceChildren();history.replaceState(null,'',isExample?'/allocation?example=1':'/allocation');load(); }
+  function changeSource(isExample) { example=isExample;selectedHomeId=null;requestedPage=1;byId('strategy').value='prioritized';byId('seed').replaceChildren();history.replaceState(null,'',isExample?'/allocation?example=1':('/allocation'+(selectedExperiment?'?experiment='+encodeURIComponent(selectedExperiment):'')));load(); }
   byId('example').addEventListener('click',()=>changeSource(true));
   byId('saved').addEventListener('click',()=>changeSource(false));
   load();

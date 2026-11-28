@@ -189,3 +189,7 @@ Tests for result loading and pagination:
 ```bash
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s tests -p test_allocation_results.py -v
 ```
+
+## Final one-time installation protocol
+
+`scripts/final_allocation.py` freezes weekly planning profiles from validation forecasts available before 8 November 2018 00:00 UTC. It keeps retrospective daily-forecast rankings separate and evaluates six budgets plus cost/PV/emissions sensitivities. See [FINAL_STUDY.md](FINAL_STUDY.md) for timing, physical clipping, reference portfolios, random pairing, and scope.

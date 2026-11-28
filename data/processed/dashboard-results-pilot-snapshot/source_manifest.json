@@ -1,0 +1,762 @@
+[
+  {
+    "path": "data/processed/grid-import-2018/part-00000-dc7d0b12-1deb-43a6-abb4-2bab1ede1e29-c000.snappy.parquet",
+    "sha256": "0cf6eabc52ba0f7d93076fb7c6bf2e71690a48c71ddf46b01e644a34d5f1a9c2"
+  },
+  {
+    "path": "data/processed/grid-import-2018/part-00001-dc7d0b12-1deb-43a6-abb4-2bab1ede1e29-c000.snappy.parquet",
+    "sha256": "08b4825a5c8ff2b8debfaecdc792656f93b16ac3bd24e2ca8509a14fe69e4758"
+  },
+  {
+    "path": "data/processed/priority-pilot-v1/joined.parquet",
+    "sha256": "4f33eabfbf8d63d62f0fe91357347010ef29700644b0c47b1ad299e72e7025cf"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/allocation_comparison.csv",
+    "sha256": "be65051cb0b54c0fbff5b02514624e9b6eb5a8f79a46055e9c856a8751e75f14"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/base/budget-54000.00/selected_households.csv",
+    "sha256": "1a9af64a94c906e20f6d3208db4556627cf4bfc2a298831832ae7d36ebb296af"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/base/budget-54000.00/strategy_results.csv",
+    "sha256": "fbf8bafc0d52054ec74465d10efb76334cf88a8885859210fd343f0db97f1cc8"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/base/budget-54000.00/summary.json",
+    "sha256": "fe5173c097ddd7ca56f38af0c6927d581e76382d8a1857b753f76b3239abe9ee"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/cost-high/budget-54000.00/selected_households.csv",
+    "sha256": "158eddae8bed88e7920853ade75ce6a98b493f2339db3f2c5d077400876a6e99"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/cost-high/budget-54000.00/strategy_results.csv",
+    "sha256": "c821f937df0193ec0f48c7647a6505f6dda366ad59e048a490212b506057effd"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/cost-high/budget-54000.00/summary.json",
+    "sha256": "e3b3b707116fdfb5a4cef4732e83369cc03909ba893af69187397b7d80e3847a"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/cost-low/budget-54000.00/selected_households.csv",
+    "sha256": "78a6e3ab3e457379fae1dcf571a9813ff11e7bc24995ef224f909088b0642520"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/cost-low/budget-54000.00/strategy_results.csv",
+    "sha256": "dfb3104b9f7c80ef74b87f6b726573013182d415c709c1125595f56de138e96b"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/cost-low/budget-54000.00/summary.json",
+    "sha256": "b33bf86dc8ada5381cdd6639578a16ae8ebf62de15f05edc870383a19ca87ad4"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/emissions-high/budget-54000.00/selected_households.csv",
+    "sha256": "f91b21a595dc109a9bffd583fe3411d2ae673794768dfb3f9109f193275cd497"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/emissions-high/budget-54000.00/strategy_results.csv",
+    "sha256": "16ef8ca2fe864850e944d74d3c7e29b21cc8e247eb6f95e0bdbffa31b1985dec"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/emissions-high/budget-54000.00/summary.json",
+    "sha256": "7fcb59f404c8e0d871d77248df90f8c1442efb0fc283c325f38642bc3f907a22"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/emissions-low/budget-54000.00/selected_households.csv",
+    "sha256": "09cb3e4d3445cd428ff2349c4c2e25c097dfb3507f9d4681149b23eb8e3453b9"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/emissions-low/budget-54000.00/strategy_results.csv",
+    "sha256": "31871341b3d6990bdbc87802836fff45005db2d54a4bc698fca9458b88a95642"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/emissions-low/budget-54000.00/summary.json",
+    "sha256": "70bab0d44394d398bcb7d2783661b989479b1697a7aaf0a91c19909a805b28cb"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/pv-2kw/budget-54000.00/selected_households.csv",
+    "sha256": "52fb6c48e4de201bec35d663c9ee9d6e6fb370014dc57645c7c67a48102ee266"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/pv-2kw/budget-54000.00/strategy_results.csv",
+    "sha256": "561cf7fedbae78145abf305ec063a729bfd877d86bb43fd2da6c8a781df17312"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/pv-2kw/budget-54000.00/summary.json",
+    "sha256": "015b6644811094bf8f590fa80eab17dc62c2370bee9711b3af6e1e3531e944d7"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/pv-6kw/budget-54000.00/selected_households.csv",
+    "sha256": "912260d988b0ab619110ff094d01f33888df6731f72b437fe9d127c7c8d98f5e"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/pv-6kw/budget-54000.00/strategy_results.csv",
+    "sha256": "abd6b4aa35de1ebd21d150679df2839d8a52316eec53f42636d0f29266988921"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/pv-6kw/budget-54000.00/summary.json",
+    "sha256": "4dea1a00763621de2dd78285d75c5aa84f187de6218e1b78d5bbb50b7384b7ba"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/pv-8kw/budget-54000.00/selected_households.csv",
+    "sha256": "9b0ba0e880724ab50183a7fdafddef37c7d1eee292764d87662b951a3cc084d7"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/pv-8kw/budget-54000.00/strategy_results.csv",
+    "sha256": "440294e16ebdfd7ac35f0789a96ac72e7d40c1d77f20fcc4d4fcc1c53ffab949"
+  },
+  {
+    "path": "outputs/priority-experiments/historical-sensitivity-v1/frozen-historical-28d/pv-8kw/budget-54000.00/summary.json",
+    "sha256": "fbea39b3ec5f9da8666d7c407758717ee81a2ffbd92f75ce0f114126ad13232c"
+  },
+  {
+    "path": "outputs/priority-experiments/lstm-pilot-demand-v1/predictions.parquet",
+    "sha256": "bf4bf26347863da503c87ea3237834e3c58a43043896042f129a6014deb60d16"
+  },
+  {
+    "path": "outputs/priority-experiments/lstm-pilot-temperature-v1/predictions.parquet",
+    "sha256": "b285228430d097c76ef3fdf2f7aca278d4eb3a2bd2964514eaa59873a50fda04"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/allocation_comparison.csv",
+    "sha256": "55edb436c0b55bfd8f96ed899f97c38fd0161da076a6fe6ae5f7859440154061"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/base/budget-54000.00/selected_households.csv",
+    "sha256": "a8d150a8f8b4300379d7b32c6c0b47373e199a383667c547aa1b6bda86322736"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/base/budget-54000.00/strategy_results.csv",
+    "sha256": "290cc5fdf442fa34e621922ec4439acb6dd639f9dbf6bf4b0b6a843f36a1415a"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/base/budget-54000.00/summary.json",
+    "sha256": "9cf9239619408d58b0dfa455a7d6ccbbe96ec4de2a5d57b50d7210318f137513"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/cost-high/budget-54000.00/selected_households.csv",
+    "sha256": "fe2644f7d7f36f7e836d2e337b00200cf94366eabe4acfe902f6f5c694025eab"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/cost-high/budget-54000.00/strategy_results.csv",
+    "sha256": "1a81e54d918bdde732a51d0f42dc2c146261dbf36e6f97d6a401f9051a5580d1"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/cost-high/budget-54000.00/summary.json",
+    "sha256": "ad68bce7ad91acf0937e6dca7102ca93bdc6b73019b2728038f4310739aa33e0"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/cost-low/budget-54000.00/selected_households.csv",
+    "sha256": "7489ad464f8154fb2c3eb6354dafe85309456041b04074a47f1cbd42e5461303"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/cost-low/budget-54000.00/strategy_results.csv",
+    "sha256": "5bcfc936b69e58c9460f5e62e1bed6f2fa5f65a5615c05e2f311787c15e7e66d"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/cost-low/budget-54000.00/summary.json",
+    "sha256": "c05333869cff50b26aabdea1369261cf8e3a052955ce72d0ba2af3faae416b60"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/emissions-high/budget-54000.00/selected_households.csv",
+    "sha256": "d91b8cc2f3fdcd2d0de50dd38a2627574c59ce565d58d6f1722a8a9adf855098"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/emissions-high/budget-54000.00/strategy_results.csv",
+    "sha256": "f69b902d82388f16ae675e8c2c4a6bce954ea6c89b2a39f786c6b3ee3918c397"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/emissions-high/budget-54000.00/summary.json",
+    "sha256": "6c1127fa79a1ac65f903154d1275578364376921ad6337d44cc51ef286c1b26c"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/emissions-low/budget-54000.00/selected_households.csv",
+    "sha256": "c36ee3f2117a722b563af666debd3808c113bfe133ebae86d5ed7bd4f2b7a4e2"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/emissions-low/budget-54000.00/strategy_results.csv",
+    "sha256": "3729d374b6ced432a85d355eed92a6c6e744c2660b2e828fd97d62f334e92acd"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/emissions-low/budget-54000.00/summary.json",
+    "sha256": "8995ec22c07a7800d87bc7ab4f323b5f540f19c5c634e49c4fe13d7595139186"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/pv-2kw/budget-54000.00/selected_households.csv",
+    "sha256": "c329858ea2d2f571bb3172d0d051703d5066d6bdbe56efe31a750f65fd375b0a"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/pv-2kw/budget-54000.00/strategy_results.csv",
+    "sha256": "3f3c12a75bc2c081d22985cf55586dd0b81fb8bd975505487a84e5de51a81e26"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/pv-2kw/budget-54000.00/summary.json",
+    "sha256": "570bfe3693c0e5c54ee31705ac51378f51972f7d7b769f616bdd871f84ddf8a3"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/pv-6kw/budget-54000.00/selected_households.csv",
+    "sha256": "c8955f46efc949e40778fd41422af638457d69360ec370be03d09c125490630c"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/pv-6kw/budget-54000.00/strategy_results.csv",
+    "sha256": "4bf919a25a33dcec26a935d3bafb27fce504a32e3c972be89269e005f618421a"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/pv-6kw/budget-54000.00/summary.json",
+    "sha256": "dd2ae464b3cc8eb0cd464b0bcc1da40763d38a750fc15d3fd8018db2809e3852"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/pv-8kw/budget-54000.00/selected_households.csv",
+    "sha256": "e7238472fc93e59c36e8e92010ee9e12db8f9a8b6d2b5bc17e8a6d18910b7a18"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/pv-8kw/budget-54000.00/strategy_results.csv",
+    "sha256": "7c0f65ce8a4c0574a93f6e0a4ce2d60fa88be4b18c810109344203deff49e668"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm/pv-8kw/budget-54000.00/summary.json",
+    "sha256": "4b126eb0e07f3fd3d297b21235a0faf35853870fad75a18546dbcdf56d929d68"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/base/budget-54000.00/selected_households.csv",
+    "sha256": "17438f2da1870b08f6b4ccd8d28bf170d46dedb3a81c12824257d5582b7f3406"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/base/budget-54000.00/strategy_results.csv",
+    "sha256": "3f7da68867eaeb3a17f8fadc87bd0bf4bf0698dc4ca4600192e5b91a7dc972ad"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/base/budget-54000.00/summary.json",
+    "sha256": "c984b68aafbd7ae41072ccafacc4363ce307c54e8ddbeddca38212f4690c58bb"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/cost-high/budget-54000.00/selected_households.csv",
+    "sha256": "ee3de86fc81ee69b2d83a992810b451a1127efbd4255721a7ee95dbc07551c76"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/cost-high/budget-54000.00/strategy_results.csv",
+    "sha256": "37d5651ffb8057729994e26af27e2b486c0f621ab9b06c5ba5d2cb47ae482a71"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/cost-high/budget-54000.00/summary.json",
+    "sha256": "5a9c526bb559c84aaef0dec0f87569a76f8f4a13454a78fbe93909d075445624"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/cost-low/budget-54000.00/selected_households.csv",
+    "sha256": "54b8f9d8f2f79a9803b7560547cdee4ca0c7358d46fd6a1ef8b91d7d4fc426a8"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/cost-low/budget-54000.00/strategy_results.csv",
+    "sha256": "7238e481d66bfb2094586a8ffe4ca1eb349a1e9b907e18ab968408f8ca2cb22d"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/cost-low/budget-54000.00/summary.json",
+    "sha256": "1d1ac2a572e92888a3f8b0f773f7432de459e608783e0648c5e1afbdb9bf651c"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/emissions-high/budget-54000.00/selected_households.csv",
+    "sha256": "6b483ca6d00a10ff928d81652d36c7523c2c2a45b98024d0d50dd55cd94d6d23"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/emissions-high/budget-54000.00/strategy_results.csv",
+    "sha256": "099675ee0fe7180ff83106ea50e12aebb0ee845f4b1d3e87cb93571cd940f165"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/emissions-high/budget-54000.00/summary.json",
+    "sha256": "c03893899cbaee3217e57a32fc7d1274f625aea04bc7bf88499dbab948681e5b"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/emissions-low/budget-54000.00/selected_households.csv",
+    "sha256": "2188149b87f3cb52fbfccb102ed82e4654a7e41add4d8d932e70993b72f777fc"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/emissions-low/budget-54000.00/strategy_results.csv",
+    "sha256": "221bf219a5af8f81dfbc7f53ef5955cb7be046c926efbc16baab6d86b467ce4a"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/emissions-low/budget-54000.00/summary.json",
+    "sha256": "886f5a8e6c35eaba75173f1bc4aa1e62db3c4e1c1684b854d4872148759d01e8"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/pv-2kw/budget-54000.00/selected_households.csv",
+    "sha256": "1cfd6d8e412b4c570b483899380ea22f8d0fb3cd71f01b77d744b969bebdfeac"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/pv-2kw/budget-54000.00/strategy_results.csv",
+    "sha256": "bdfde4cdcfb4f60976d0c536a5803916cb361cb51d0faeb7d9ddace06b3c0741"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/pv-2kw/budget-54000.00/summary.json",
+    "sha256": "6dca0b20dd421b641ee9fa6008a20e76c1bdbe6dfa0c155c7dfc105894235fc0"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/pv-6kw/budget-54000.00/selected_households.csv",
+    "sha256": "02aace0e04b713d031f7101575b413e7b66854a2391a1b865b55e9b1b98d06be"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/pv-6kw/budget-54000.00/strategy_results.csv",
+    "sha256": "efcb461c8ecd67064d8abb196723def9a5ef73ca131c95097f09880887cb413a"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/pv-6kw/budget-54000.00/summary.json",
+    "sha256": "bb24028f82226c425613e8cb8994820e88e8cfa41cdbf0fcd06271bcb2dc9539"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/pv-8kw/budget-54000.00/selected_households.csv",
+    "sha256": "f2ff71aa970a1d5afc4f0284783df67e3bcdd68e4662d0e4eeec26b1999853e8"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/pv-8kw/budget-54000.00/strategy_results.csv",
+    "sha256": "dce181980ce792dbc5c93ed1d5c8e2e5d1029cee75ab7e2acd80e748db5bd824"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/lstm-temperature/pv-8kw/budget-54000.00/summary.json",
+    "sha256": "1f23541c8a8ecd3a3b7059c5df8f167a05cbe226bdee3db4b2c7c7911ac9b024"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/matched_forecast_accuracy.csv",
+    "sha256": "d27020dc5d1122d21abaf1c9819906425fd35dc133245847303ffe0acbfa032b"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/base/budget-54000.00/selected_households.csv",
+    "sha256": "8d0ea91e70b65dcb432bc3e8a68d5bed717a0420c7173c7723e448f7a5bf4026"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/base/budget-54000.00/strategy_results.csv",
+    "sha256": "12bcb0e5935788a49c2b8e6b2669e3a02f5639fe4bdec61a6094d4140a38511f"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/base/budget-54000.00/summary.json",
+    "sha256": "6d6dd6736c4e68744f3371af2576bf9688e42ab0ed72a1f1ddfcad068b35f246"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/cost-high/budget-54000.00/selected_households.csv",
+    "sha256": "36db97bfb79a888de54790a357dd8d7665c0dff37ba8ae833b4d0598d12a6ad5"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/cost-high/budget-54000.00/strategy_results.csv",
+    "sha256": "e7c3bacb09059d4f517243f3a05b39ecd8c2103d0f879ea1bcc5af6aa750439b"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/cost-high/budget-54000.00/summary.json",
+    "sha256": "05dc5331259d10d1b242c4cc66fb1342cb4823d4fbab9ca191a2abd0659831e4"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/cost-low/budget-54000.00/selected_households.csv",
+    "sha256": "d31b54c2531bbf6ecdec0cc642a36a7466bbc2175db4c96cd1eebb1c50d806b4"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/cost-low/budget-54000.00/strategy_results.csv",
+    "sha256": "e754081549961d5ee437cc548a89756b6c4883287fec4f3061f8ae17eb42be43"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/cost-low/budget-54000.00/summary.json",
+    "sha256": "dc29aef396fffe2e9e9239b16766f57c11ce2d0e95cd658ed73444f1e7b4dd51"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/emissions-high/budget-54000.00/selected_households.csv",
+    "sha256": "75ea184d08de84f38e2eb64d97daa2cdeaa8659326978c6b8a371a75d93d6e06"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/emissions-high/budget-54000.00/strategy_results.csv",
+    "sha256": "a75b03bca84873f55cb202af338900b2189fe5714118edf01f9c7b8cd4bdd872"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/emissions-high/budget-54000.00/summary.json",
+    "sha256": "1e99d169d3252a5941785ed6243d7bf3a6ee0fba9940600a736ec24c519cc760"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/emissions-low/budget-54000.00/selected_households.csv",
+    "sha256": "2946be7dab8eaaeb7fbdd85ad7dbca0fc30b7fa9800c65d61e5db5bdb577be34"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/emissions-low/budget-54000.00/strategy_results.csv",
+    "sha256": "43f5316c6f9549d98e9ecfc3e7f2d3308b5223b3b73fa47268faa8731134c4f9"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/emissions-low/budget-54000.00/summary.json",
+    "sha256": "6a894cb735b12dabf525f0b6810121d479461bd74efdaf30d3b04c639af2a664"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/pv-2kw/budget-54000.00/selected_households.csv",
+    "sha256": "c78037fac0bf48faad08016d24ca7cb2f8f941229bf9bd22cddf3873bc60fedc"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/pv-2kw/budget-54000.00/strategy_results.csv",
+    "sha256": "90c55aa542034a1c36ff60daf1fa4813b62eed498608d148b152b2afb37a97d1"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/pv-2kw/budget-54000.00/summary.json",
+    "sha256": "91b5405ab80b8001aab952cb90400f077c5e3d28d18b28c98ed4e3eb146f3b27"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/pv-6kw/budget-54000.00/selected_households.csv",
+    "sha256": "0251b9a3b4463986d429df45fb1b3fd3cf09c23583ea2bd05b42d0e259c8c2b5"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/pv-6kw/budget-54000.00/strategy_results.csv",
+    "sha256": "50bb1a503dc8d4f0cc23766f2f18d4deb978a8f469818750e734c094d5f1efe3"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/pv-6kw/budget-54000.00/summary.json",
+    "sha256": "03b71582b8d8235c1f97caf843dbda415d290d82e83b5a256bba4fa1427207bd"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/pv-8kw/budget-54000.00/selected_households.csv",
+    "sha256": "a3f53771b3dafbd47c8d762af025aa9be558c928ea12ad831953dc727254b9a6"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/pv-8kw/budget-54000.00/strategy_results.csv",
+    "sha256": "0da21dfc3c15472112836df049d031cba7acdb68d65c0a19b4cfc80f1c8a2acc"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-day/pv-8kw/budget-54000.00/summary.json",
+    "sha256": "008a1c8c1dbc61368bb49037cb9caa91f3202c838cfd062b0f463a8ebda274c9"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/base/budget-54000.00/selected_households.csv",
+    "sha256": "1226532e9ea84b5e668fdad45b599ea48cf43b25aca914c680d25362869dee86"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/base/budget-54000.00/strategy_results.csv",
+    "sha256": "e9d678e272a6b7c7d881ead8dc77597e9705a44ce48a57ce092dec7858c16bdf"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/base/budget-54000.00/summary.json",
+    "sha256": "5e399fd7d2abd397df78291f10aa1a1899b609751341e1c9e77bedf88f98ca5a"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/cost-high/budget-54000.00/selected_households.csv",
+    "sha256": "b4800afd45de7ed1449bbd928867915d0a800e74f7856da66aecbdf1c3ade506"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/cost-high/budget-54000.00/strategy_results.csv",
+    "sha256": "2584a202ed83a07ebf5d9794e2f2e2eeb66d7ce0cf5a86757416644ec4e222e1"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/cost-high/budget-54000.00/summary.json",
+    "sha256": "1f5067f28d2f51a6ae46c611b8e52685426c08493c8ab68f666d2aafeae75c71"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/cost-low/budget-54000.00/selected_households.csv",
+    "sha256": "09b1fde22d00c4e133c39fffae8db5ac88d1e20fb50dace14c8d226be3425e73"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/cost-low/budget-54000.00/strategy_results.csv",
+    "sha256": "b1a78f1f272c358c5156bb468ac44799da935da364c6472ae404951f341ccf98"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/cost-low/budget-54000.00/summary.json",
+    "sha256": "e80d23fde7d75ceefcc1fa67763d31e35505c6077ec7ffb62a1a290818eaa0cf"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/emissions-high/budget-54000.00/selected_households.csv",
+    "sha256": "74026a8ab8d7275e96368647370c97636b2eea542364422828602568c258caea"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/emissions-high/budget-54000.00/strategy_results.csv",
+    "sha256": "f39f5dc027ba8d3c931727eceef5145291576621e02497381d6f10cf9b94ff60"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/emissions-high/budget-54000.00/summary.json",
+    "sha256": "246ddcd176794d7836baeb29524981d7e5f32bc4594328bfad36c656e2ef970d"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/emissions-low/budget-54000.00/selected_households.csv",
+    "sha256": "d391f6f50200f67297ab666d521e1ea08ff6221f242cfe7fd371383432194af8"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/emissions-low/budget-54000.00/strategy_results.csv",
+    "sha256": "097384e91d66906d898f115ff4079da3845399ff0ddd600663cbdee437dfc7cd"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/emissions-low/budget-54000.00/summary.json",
+    "sha256": "f08627bc398aadac9b291ff41752331176cba217cca65378f246ce4d3161c665"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/pv-2kw/budget-54000.00/selected_households.csv",
+    "sha256": "02ea6f29c658da256d593da1954dce146d20717757b6fc95daf3d7134c54ec20"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/pv-2kw/budget-54000.00/strategy_results.csv",
+    "sha256": "7d566a84ee94f42668271d1cb002a5309d3392d84cca41b54b863f8b83f4d269"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/pv-2kw/budget-54000.00/summary.json",
+    "sha256": "33d4fe791a9d9c1ae40e2f9fa214a2128735f315aa72f9152ba23886b686fa58"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/pv-6kw/budget-54000.00/selected_households.csv",
+    "sha256": "5152db6a9698569df89588e40af0b03c89da3a697fafef37b5b53a8c5a379633"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/pv-6kw/budget-54000.00/strategy_results.csv",
+    "sha256": "4451c07ff9039c453525e77dc0d9456a1cca954871410d6959a5d10ee60ae840"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/pv-6kw/budget-54000.00/summary.json",
+    "sha256": "a74aa78a928ddf799cab5ea2053ee1fa408350328c2265cb3e44f2a847fdbb85"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/pv-8kw/budget-54000.00/selected_households.csv",
+    "sha256": "4320dec6c70a81627b63cf58aa899c97aa9dea56859b4a55e93edd2a93cba6c0"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/pv-8kw/budget-54000.00/strategy_results.csv",
+    "sha256": "66f63c217ee55296a7564895b44ba3521e2397aa6a7491e7826a495b4395491a"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/previous-week/pv-8kw/budget-54000.00/summary.json",
+    "sha256": "fcee5669763082aae6c0576d640f5e465a92c45c87c2e4d4d62758713bcaeed7"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/base/budget-54000.00/selected_households.csv",
+    "sha256": "fc067de8360981348a35460d1cfa44435fe1f8dd4e58d39dbe6d0ee7413883da"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/base/budget-54000.00/strategy_results.csv",
+    "sha256": "91ba6c88c96a2070d1d8385ba0b2b0256632d02796245c08d86e14d5c9ea5678"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/base/budget-54000.00/summary.json",
+    "sha256": "45e7a0470f88a5926ce2f828a1ab638f2f1857364d313020771d805175efcca8"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/cost-high/budget-54000.00/selected_households.csv",
+    "sha256": "d4c0f7748a6bf6b33a67704a8443acd6b5a8d5cea8043a902803b2b404b61af0"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/cost-high/budget-54000.00/strategy_results.csv",
+    "sha256": "f4220549e0f8037d7c21a83169846b865b81a0470e0d973087e1e79405475661"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/cost-high/budget-54000.00/summary.json",
+    "sha256": "dfc19209ba1a59b6179861a1409ec3c5d5d3fc089727f3d99eea8a2d6ab36b66"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/cost-low/budget-54000.00/selected_households.csv",
+    "sha256": "b03d105c947b2885f0d9b926f526735cfdfe830c809a022733bfaf761d3e0f78"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/cost-low/budget-54000.00/strategy_results.csv",
+    "sha256": "2dcc04f8b4611758353630b38d97acf1ee7e2ddd5f249a3d3332b58f2839c6ed"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/cost-low/budget-54000.00/summary.json",
+    "sha256": "e2404d0ae966dfd0f7514c25b60f7bd9955bc9b76dd0b93973732bb7a8e3eb8e"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/emissions-high/budget-54000.00/selected_households.csv",
+    "sha256": "1ce0fe041eb0d015f642267cdad5b8cedf5d95897e570d6d5f0edd3b37364b32"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/emissions-high/budget-54000.00/strategy_results.csv",
+    "sha256": "ce5c08a62c0ab3e270b131178af5fbc810f57a213ef0a5757d570e10ff38a1ed"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/emissions-high/budget-54000.00/summary.json",
+    "sha256": "c73e370cabdd542550ab78b491c6d0b7cbdb5673f7444a2dfab8f13afdf5db54"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/emissions-low/budget-54000.00/selected_households.csv",
+    "sha256": "6caf7afea14f8a2f4b1234793b825d70d5ba2ae4dac4034e8c76f38fdf7a8dc4"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/emissions-low/budget-54000.00/strategy_results.csv",
+    "sha256": "348fb1f528c1b180fc0b65ccd7c0ca3c8137d48382934eebd36fee4ece1487ea"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/emissions-low/budget-54000.00/summary.json",
+    "sha256": "3ef8122170f86c7fa3deaec5a84eeb0749b29f7900a47ab277a26167e8756b9d"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/pv-2kw/budget-54000.00/selected_households.csv",
+    "sha256": "6935d2486b58ba6f29fc8c0843f79f9a4ef1663017c8fb59a855f5115f1b1b98"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/pv-2kw/budget-54000.00/strategy_results.csv",
+    "sha256": "c9fdc66bc5900fa0059c5b9bf2d079c70cfd4e1a27e932acd150b33fa3384172"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/pv-2kw/budget-54000.00/summary.json",
+    "sha256": "2fc9b0d349a71aebe1328ab3fa024d131c5f720698fc13143afba5c09e9d88a1"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/pv-6kw/budget-54000.00/selected_households.csv",
+    "sha256": "c92f71ed7427b9e92e06226604a12c1c868c234484f60aeeff0277bf2d41bdf1"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/pv-6kw/budget-54000.00/strategy_results.csv",
+    "sha256": "d6d73fea988a8a8aaf3dec44578dc79e3ea7c41d113f1eef75785248e5b3665a"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/pv-6kw/budget-54000.00/summary.json",
+    "sha256": "ad671256cb9c95a01e5802c1dbcb6124da6eb11e4903d98fe961a947eecf8d11"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/pv-8kw/budget-54000.00/selected_households.csv",
+    "sha256": "fcc1268476d83afb8473ba0f41ace46737de5faaf35ab8bd4205f87388098ec3"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/pv-8kw/budget-54000.00/strategy_results.csv",
+    "sha256": "d23d1e443b25bce25c00bbbfecc0457ad45bc6a556a56b77e027b564b5b65ef4"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf/pv-8kw/budget-54000.00/summary.json",
+    "sha256": "f71edcb74b4249faeb5afeae771b28e6edb3564bcae7675000b02b8287990532"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/base/budget-54000.00/selected_households.csv",
+    "sha256": "01202f87a817f2fcfe6b5eb42316103cbea4fa128d40e52cb2b61c3cc2625e4b"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/base/budget-54000.00/strategy_results.csv",
+    "sha256": "f547fedebbd99e6807ecef7a7620862d725debd0c164b07a6d9c3e8e6d4a0ab1"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/base/budget-54000.00/summary.json",
+    "sha256": "a76184128264e704d3cc0689a6aef7534a0c8c8ab57427f2c32a8a59d6973fa2"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/cost-high/budget-54000.00/selected_households.csv",
+    "sha256": "98d16c2191453585c1aa054b00e35084a9b3af733855fd54da6e2201e6300cbd"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/cost-high/budget-54000.00/strategy_results.csv",
+    "sha256": "1df537d08a1e255522cfb666a4b711cafbee553558256610952dcd7c3a98572b"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/cost-high/budget-54000.00/summary.json",
+    "sha256": "29ad19ed28d248e36a061d73e08190889de4f9d4cb76dcf7b77cd0a559e4d0cf"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/cost-low/budget-54000.00/selected_households.csv",
+    "sha256": "56bc1328e77da67769a8179af40fcd6efe913a81d1c3e14e1a6497130146a5ff"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/cost-low/budget-54000.00/strategy_results.csv",
+    "sha256": "17718fc5ffac0bda3a9dd76a38e365b5002760e0fd3a8c0b57d7824f25bdefae"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/cost-low/budget-54000.00/summary.json",
+    "sha256": "f1e219d44d04b6362139a216296baee60e9d10aaa0c36a7e7b3f3a6e69a75b3b"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/emissions-high/budget-54000.00/selected_households.csv",
+    "sha256": "a09525ac9c5dd47b822dd1fbc2e5d5ac94dcc882cf8a393a3e296e0365742ce4"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/emissions-high/budget-54000.00/strategy_results.csv",
+    "sha256": "1707d9557ac2a4271486b8e30648a0a037ffb489d01ecbecdaf60671be77e38a"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/emissions-high/budget-54000.00/summary.json",
+    "sha256": "9ae67172810a525f38c3fbb1c46b96c64a3195b08c46fe1da31a251c1d0b62d6"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/emissions-low/budget-54000.00/selected_households.csv",
+    "sha256": "a69ba77030e1a3f15f7cc392e0a8b49e00bdf3501755f7a5fde30ef31fbf86b0"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/emissions-low/budget-54000.00/strategy_results.csv",
+    "sha256": "59e61aafc82a672aa95536ebc9e6ea386b0efc61f990c64c9cce1734de4d3c3a"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/emissions-low/budget-54000.00/summary.json",
+    "sha256": "fde88563022a7e71ebc1f237d66525db1cadd4f3b8dc05777bdab6eaa4782e29"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/pv-2kw/budget-54000.00/selected_households.csv",
+    "sha256": "3df5846098573742ce0daf3b718c0f4f062c59597f2bd8b54cf1fd0b372de3d9"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/pv-2kw/budget-54000.00/strategy_results.csv",
+    "sha256": "6a7dd525f8b12c89a7585fe1ac3daf1c243c35e4875ce4293025205cc5dd923e"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/pv-2kw/budget-54000.00/summary.json",
+    "sha256": "2e95f86c17713581bfe740fbd2cf6a759288735961e24944e7af24261d8f8da5"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/pv-6kw/budget-54000.00/selected_households.csv",
+    "sha256": "c03b60394f0c10ca11cfd4f525e108ff2ba1b7fe75620dee9434463c40a13ffe"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/pv-6kw/budget-54000.00/strategy_results.csv",
+    "sha256": "b00511c02bced0a1786c05383ae16537e55bb506f4b7a35125f085c9ce5e6e87"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/pv-6kw/budget-54000.00/summary.json",
+    "sha256": "2ad7ca1f2f8cf6bd074bf1e30df42f6a049b551b1c7bee56f846c81dc4353454"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/pv-8kw/budget-54000.00/selected_households.csv",
+    "sha256": "c2abd40ed8ec6e4f48197a459e5ed1782c89ecb44f5c5bc732ff61f6aba5214b"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/pv-8kw/budget-54000.00/strategy_results.csv",
+    "sha256": "56a28a238a33c36799cdeef8ae1ba3e161151ad25f7aa21157fd7ca5a81c8ba1"
+  },
+  {
+    "path": "outputs/priority-experiments/matched-pilot-v1/rf-temperature/pv-8kw/budget-54000.00/summary.json",
+    "sha256": "7f874dc5db507e6b691eebd797a90eccdbb7e78451f71f6288c2b8e84b962f51"
+  },
+  {
+    "path": "outputs/priority-experiments/rf-pilot-temperature-v1/predictions/part-00000-3159be74-bfb7-47ef-a911-3772dd2e0c60-c000.snappy.parquet",
+    "sha256": "bcef78ac3e509528bf7c6fd3715cbb42b8c46c29a141427051eed33ab6c1433d"
+  },
+  {
+    "path": "outputs/priority-experiments/rf-pilot-v1/predictions/part-00000-fdfaa720-3fc7-4816-85ce-ac7cdfd92e73-c000.snappy.parquet",
+    "sha256": "47008225ee90176b733a88193e8435cee4dee82d9c89f44ef770c0a7224890b2"
+  },
+  {
+    "path": "results/lstm/results_demand_only.txt",
+    "sha256": "e3ac5e5a3e050161fd7b6fb933eeeffaf70c44cee76f13f497f183630a0af598"
+  },
+  {
+    "path": "results/lstm/results_with_temp.txt",
+    "sha256": "db71c1ec7a068089e03a0a63bdc941d6973e65a2cc57b7dc57523724ed082a0e"
+  },
+  {
+    "path": "results/performance/aligned-hourly-2018-v1.json",
+    "sha256": "8bc650cc8e0360b8f15bc19b3bcbcbc3053a12cc9274b6488e01281d66ba83dc"
+  },
+  {
+    "path": "results/performance/lstm-pilot-demand-v1.json",
+    "sha256": "f5d64f59e7b92f9a72a822f7211353dd83ebdb569999f6dabfac62cab5bdb2a2"
+  },
+  {
+    "path": "results/performance/lstm-pilot-temperature-v1.json",
+    "sha256": "d6c8a7d7fcf214a041f12fb89a4d3040654a9bf1dfc7b8b651065264d91ee11a"
+  },
+  {
+    "path": "results/performance/rf-pilot-temperature-v1.json",
+    "sha256": "3491a60c45ef16f481b2fd3447540eca80ef49b5b9aa52f08f91f0258af180f9"
+  },
+  {
+    "path": "results/performance/rf-pilot-v1.json",
+    "sha256": "7096078b9d98c24704959220d6a87d99e4807f6062f1cf77a1368226ded60c04"
+  },
+  {
+    "path": "results/performance/time_alignment_audit.json",
+    "sha256": "366cc97d2c315e07e8c693b50d4dd950a26495523b1b55ec9d20519a675c2ba8"
+  },
+  {
+    "path": "results/random_forest/random_forest_demand_only.txt",
+    "sha256": "770157ad1cbe591b6973dcec6e0c177a6354810ed47e5e2d064213309af65aa4"
+  },
+  {
+    "path": "results/random_forest/random_forest_with_temp.txt",
+    "sha256": "aaee656972ee5c4df67b64a46e242d191837e30c528c6764a11b6ea4e66f95f2"
+  },
+  {
+    "path": "scripts/build_results_dashboard.py",
+    "sha256": "0d9008790081a3e49ee396d350e5e1ba409b12296d33cf7660a97e55554b4bd1"
+  },
+  {
+    "path": "scripts/summarize_forecasts.py",
+    "sha256": "ba6db9e4548fe6a21584f14c1a0373177ee14cd37f0554d30b84927bd262d6f1"
+  }
+]

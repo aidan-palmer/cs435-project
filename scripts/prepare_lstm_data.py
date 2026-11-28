@@ -1,5 +1,12 @@
 
 import argparse
+import json
+import time
+
+if __package__:
+    from .runtime_evidence import save_runtime
+else:
+    from runtime_evidence import save_runtime
 
 from pyspark.sql import SparkSession, functions as F
 from pyspark.sql.window import Window
@@ -136,6 +143,7 @@ def main():
     parser.add_argument("output", help="Output HDFS Parquet path")
     parser.add_argument("--val-start", required=True)
     parser.add_argument("--test-start", required=True)
+    parser.add_argument("--runtime-output")
     '''
     Use the same start dates as the random forest! 
     '''
@@ -152,7 +160,9 @@ def main():
         .appName("SolarOpt LSTM Sequence Generation")
         .getOrCreate()
     )
+    spark.conf.set("spark.sql.session.timeZone", "UTC")
 
+    started=time.perf_counter()
     hourly = spark.read.parquet(args.input)
     sequences = prepare_sequences(hourly)
 
@@ -170,19 +180,32 @@ def main():
         .otherwise("test")
     )
 
+    sequences=sequences.cache()
+    counts={row["split"]:row["count"] for row in sequences.groupBy("split").count().collect()}
     # One row per building/day, not one row per target hour.
     sequences.groupBy("split").count().show()
 
     (
         sequences
         .write
-        .mode("overwrite")
+        .mode("errorifexists")
         .partitionBy("split")
         .parquet(args.output)
     )
 
+    metadata=dict(input=args.input,output=args.output,val_start=args.val_start,
+                  test_start=args.test_start,timestamp_clock='UTC',input_hours=168,target_hours=24,
+                  split_counts=counts,issue_label='Start of last observed hour; available one hour later')
+    target=spark._jvm.org.apache.hadoop.fs.Path(args.output.rstrip('/')+'/_sequence_metadata.json')
+    fs=target.getFileSystem(spark._jsc.hadoopConfiguration())
+    stream=fs.create(target,False)
+    stream.write(bytearray(json.dumps(metadata,indent=2).encode('utf-8')))
+    stream.close()
     print("Saved LSTM sequences to:", args.output)
 
+    if args.runtime_output:
+        save_runtime(args.runtime_output,dict(processing_seconds=time.perf_counter()-started),metadata,spark)
+    sequences.unpersist()
     spark.stop()
 
 

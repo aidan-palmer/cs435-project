@@ -1,0 +1,79 @@
+{
+  "study_id": "final-study-v1",
+  "scope": "573 aligned simulated Larimer County profiles; 382 detached profiles eligible for allocation",
+  "clock": "UTC hour starts; observations become available at interval end",
+  "validation_start": "2018-09-15",
+  "test_start": "2018-11-08T00:00:00Z",
+  "test_end_exclusive": "2019-01-01T00:00:00Z",
+  "seed": 42,
+  "rf_validation_grid": [
+    {
+      "numTrees": 50,
+      "maxDepth": 8
+    },
+    {
+      "numTrees": 100,
+      "maxDepth": 10
+    },
+    {
+      "numTrees": 100,
+      "maxDepth": 12
+    }
+  ],
+  "lstm": {
+    "history_hours": 168,
+    "target_hours": 24,
+    "units": 64,
+    "dropout": 0.2,
+    "dense_units": 64,
+    "learning_rate": 0.001,
+    "max_epochs": 30,
+    "patience": 5,
+    "batch_size": 128
+  },
+  "housing_ablation": {
+    "model": "RF with temperature plus static housing",
+    "fields": [
+      "in.sqft",
+      "in.heating_fuel"
+    ],
+    "excluded": "All annual consumption and outcome fields; LSTM retains history-only architecture"
+  },
+  "installation_decision": {
+    "time_utc": "2018-11-08T00:00:00Z",
+    "method": "Freeze mean predicted demand by UTC hour of week from 28 days of selected-model validation forecasts before the decision, then apply that profile throughout evaluation",
+    "important_limit": "Planning proxy derived from pre-decision model forecasts; not a direct multi-month LSTM/RF forecast or rolling placement policy"
+  },
+  "allocation_budgets_usd": [
+    15000,
+    20000,
+    21600,
+    54000,
+    108000,
+    216000
+  ],
+  "random_runs": 100,
+  "sensitivity": "One assumption at a time; fixed-shape PV scaling with fixed PV-case cost; uniform emissions factors",
+  "computing": "Local CPU execution; no cluster or multi-machine speedup claim",
+  "scaling": {
+    "nested_buildings": [
+      50,
+      150,
+      300,
+      573
+    ],
+    "repeats": 3,
+    "rf": {
+      "numTrees": 50,
+      "maxDepth": 8
+    },
+    "lstm_epochs": 1,
+    "training_window": "2018-07-01 through 2018-07-31 UTC",
+    "validation_window": "2018-08-01 through 2018-08-07 UTC",
+    "test_window": "2018-08-08 through 2018-08-14 UTC",
+    "note": "Fixed smaller training protocol for controlled size scaling; separate from final accuracy tuning",
+    "shuffle_partitions": 16,
+    "adaptive_partition_coalescing": false,
+    "fit_timer": "training only; validation data prepared but not scored inside fit timer"
+  }
+}

@@ -46,3 +46,11 @@ outputs/logs/**
 Thumbs.db
 
 output*
+
+# Generated aligned data and explicit integration pilots
+/data/processed/aligned-hourly-*/
+/data/processed/priority-pilot-*/
+
+/data/processed/dashboard-results/
+
+/data/processed/final-study-*/

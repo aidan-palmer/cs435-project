@@ -1,0 +1,26 @@
+{
+  "recorded_at_utc": "2026-11-28T01:01:35.973993+00:00",
+  "phases_seconds": {
+    "processing_seconds": 22.60946237493772
+  },
+  "configuration": {
+    "input": "../DATA_for_project/larimer_baseline",
+    "output": "data/processed/aligned-hourly-2018-v1",
+    "timestamp_clock": "UTC",
+    "source_clock": "fixed EST interval ends",
+    "rows": 5019480,
+    "buildings": 573
+  },
+  "environment": {
+    "python": "3.14.0 (v3.14.0:ebf955df7a8, Oct  7 2025, 08:20:14) [Clang 16.0.0 (clang-1600.0.26.6)]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "logical_cpus": 18,
+    "spark": "4.0.1",
+    "master": "local[2]",
+    "default_parallelism": 2,
+    "shuffle_partitions": "8"
+  },
+  "git_head": "54bc4d2233c415f7b3ee7db2e65a47cd37e974d3",
+  "scope": "One measured local run; no distributed speedup or repeated-run uncertainty established"
+}
