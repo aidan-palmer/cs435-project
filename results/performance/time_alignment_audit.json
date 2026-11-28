@@ -1,0 +1,16 @@
+{
+  "rows": 5019480,
+  "buildings": 573,
+  "exact_keys_match_existing_simulation": true,
+  "max_demand_difference_kwh": 0.0,
+  "raw_example_building": "128",
+  "raw_intervals": 35040,
+  "old_direct_floor_hours": 8761,
+  "old_first_bin_intervals": 3,
+  "old_last_bin_intervals": 1,
+  "corrected_hours": 8760,
+  "corrected_min_intervals": 4,
+  "corrected_max_intervals": 4,
+  "status": "Shared aggregation run validated all 573 complete profiles; comparison against existing simulation demand passed",
+  "old_forecast_result_status": "Saved legacy RF/LSTM metrics preserved; cannot establish preprocessing provenance without original run inputs"
+}

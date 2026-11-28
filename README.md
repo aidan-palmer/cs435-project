@@ -4,7 +4,7 @@
 
 This term project investigates whether machine-learning forecasts of residential electricity demand can improve residential solar placement decisions in Fort Collins, Colorado.
 
-The project combines residential electricity demand, housing characteristics, solar-production estimates, and regional grid/emissions data in a reproducible Big Data pipeline. We will compare a seasonal-naive baseline, a Random Forest Regressor, and an LSTM model for next-day hourly electricity-demand forecasting. Forecasts will then feed a solar and emissions simulation used to compare installation strategies under a fixed budget.
+The project combines residential electricity demand, housing characteristics, solar-production estimates, and regional grid/emissions data in a reproducible Big Data pipeline. Saved experiments now compare a seasonal-naive baseline, a Random Forest Regressor, and an LSTM model for next-day hourly electricity-demand forecasting. Forecasts will then feed a solar and emissions simulation used to compare installation strategies under a fixed budget.
 
 The core deliverable is a reproducible **forecasting -> solar simulation -> emissions estimation -> allocation** pipeline.
 
@@ -227,3 +227,34 @@ The project is ready for final submission when a clean checkout can reproduce th
 ## Course Project Note
 
 This repository supports a Big Data term project. The emphasis is not only predictive accuracy, but also the distributed-data pipeline, reproducibility, computational tradeoffs, and how forecast quality affects a downstream solar-investment decision.
+
+## LSTM training and saved results
+
+The merged contribution includes `scripts/prepare_lstm_data.py`, `scripts/train_lstm.py`, and evaluated demand-only and temperature runs under `results/lstm/`.
+
+| Model | Test MAE (kWh) | Test RMSE (kWh) | Hourly targets |
+|---|---:|---:|---:|
+| Previous day | 0.4911 | 1.0948 | 728,856 |
+| Previous week | 0.5261 | 1.1747 | 728,856 |
+| RF demand only | 0.4415 | 0.9940 | 728,856 |
+| RF with temperature | 0.4280 | 0.9795 | 728,856 |
+| LSTM demand only | 0.4168 | 0.8765 | 728,856 |
+| LSTM with temperature | 0.4115 | 0.8836 | 728,856 |
+
+Temperature LSTM has the lowest saved MAE; demand-only LSTM has the lowest RMSE. These are single-run descriptive results. Identical test counts and nearly identical seasonal-baseline errors support comparison, but matched building/hour keys and split provenance still need verification. Existing solar-allocation results use a frozen historical baseline, independently of these RF/LSTM experiments.
+
+See [the LSTM workflow](docs/LSTM.md) for commands, architecture, saved artifacts, and remaining integration work. Export the comparison without TensorFlow or Spark:
+
+```bash
+python scripts/summarize_forecasts.py --output outputs/metrics/forecast_test_metrics.csv
+```
+
+## Aligned experiments and remaining priorities
+
+See [the experiment workflow](docs/PRIORITY_EXPERIMENTS.md) for the shared hourly correction, model-to-allocation adapter, matched RF/LSTM commands, executed sensitivity scenarios, and measured runtime phases. Existing saved forecast logs are retained separately from the new aligned pilot.
+
+The web dashboard now includes **Study results** at `/results`. Generate its saved data with `python scripts/build_results_dashboard.py` in the forecasting environment, then run `scripts/serve_grid_dashboard.py` as described in [the experiment workflow](docs/PRIORITY_EXPERIMENTS.md#showing-the-evidence-in-the-web-application).
+
+## Final full-cohort study
+
+The frozen final protocol, full-cohort models, housing-feature comparison, one-time installation rule, repeated local scaling, verification checks, and reproduction commands are documented in [FINAL_STUDY.md](docs/FINAL_STUDY.md). Earlier logs and the pilot remain distinct snapshots; the app loads final evidence after verification passes.

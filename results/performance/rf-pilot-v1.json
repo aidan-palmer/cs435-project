@@ -1,0 +1,75 @@
+{
+  "recorded_at_utc": "2026-11-28T01:06:13.953643+00:00",
+  "phases_seconds": {
+    "processing_seconds": 5.814023292041384,
+    "tuning_training_and_validation_seconds": 29.976637042011134,
+    "selected_model_training_seconds": 16.3867717909161,
+    "prediction_and_test_metrics_seconds": 0.5330734580056742,
+    "prediction_export_seconds": 0.07610491698142141
+  },
+  "configuration": {
+    "input": "data/processed/priority-pilot-v1/hourly.parquet",
+    "output": "outputs/priority-experiments/rf-pilot-v1",
+    "use_temperature": false,
+    "val_start": "2018-09-15",
+    "test_start": "2018-11-08",
+    "timestamp_clock": "UTC",
+    "seed": 42,
+    "features": [
+      "lag_0",
+      "lag_1",
+      "lag_24",
+      "same_hour_yesterday",
+      "same_hour_last_week",
+      "mean_24",
+      "mean_168",
+      "std_24",
+      "target_hour",
+      "target_day_of_week",
+      "target_month",
+      "horizon"
+    ],
+    "best_config": {
+      "numTrees": 100,
+      "maxDepth": 12
+    },
+    "trials": [
+      {
+        "config": {
+          "numTrees": 50,
+          "maxDepth": 8
+        },
+        "training_seconds": 3.041240834048949
+      },
+      {
+        "config": {
+          "numTrees": 100,
+          "maxDepth": 10
+        },
+        "training_seconds": 9.638263207976706
+      },
+      {
+        "config": {
+          "numTrees": 100,
+          "maxDepth": 12
+        },
+        "training_seconds": 16.3867717909161
+      }
+    ],
+    "train_rows": 59760,
+    "validation_rows": 12960,
+    "test_rows": 12960
+  },
+  "environment": {
+    "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "logical_cpus": 18,
+    "spark": "4.0.1",
+    "master": "local[2]",
+    "default_parallelism": 2,
+    "shuffle_partitions": "8"
+  },
+  "git_head": "54bc4d2233c415f7b3ee7db2e65a47cd37e974d3",
+  "scope": "One measured local run; no distributed speedup or repeated-run uncertainty established"
+}

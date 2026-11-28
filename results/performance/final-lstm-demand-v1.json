@@ -1,0 +1,88 @@
+{
+  "recorded_at_utc": "2026-11-28T02:57:58.142427+00:00",
+  "phases_seconds": {
+    "processing_seconds": 6.534720083000138,
+    "training_seconds": 828.5703370419797,
+    "prediction_metrics_and_export_seconds": 8.508874332997948,
+    "prediction_model_calls_seconds": 3.3895271725486964,
+    "validation_prediction_export_seconds": 8.387922208057716
+  },
+  "configuration": {
+    "input": "data/processed/final-study-v1/sequences",
+    "output": "outputs/final-study-v1/lstm-demand",
+    "use_temperature": false,
+    "epochs_requested": 30,
+    "epochs_completed": 17,
+    "batch_size": 128,
+    "learning_rate": 0.001,
+    "patience": 5,
+    "seed": 42,
+    "timestamp_clock": "UTC",
+    "train_sequences": 142677,
+    "validation_sequences": 30942,
+    "test_sequences": 30942,
+    "tensorflow": "2.19.0",
+    "sequence_metadata": {
+      "input": "data/processed/aligned-hourly-2018-v1",
+      "output": "data/processed/final-study-v1/sequences",
+      "val_start": "2018-09-15",
+      "test_start": "2018-11-08",
+      "timestamp_clock": "UTC",
+      "input_hours": 168,
+      "target_hours": 24,
+      "split_counts": {
+        "validation": 30942,
+        "test": 30942,
+        "train": 142677
+      },
+      "issue_label": "Start of last observed hour; available one hour later"
+    }
+  },
+  "environment": {
+    "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+    "platform": "macOS-27.0.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "logical_cpus": 18,
+    "packages": {
+      "numpy": "2.1.3",
+      "pandas": "2.2.3",
+      "pyarrow": "17.0.0",
+      "tensorflow": "2.19.0",
+      "keras": "3.15.1"
+    }
+  },
+  "git_head": "54bc4d2233c415f7b3ee7db2e65a47cd37e974d3",
+  "scope": "One measured local run; no distributed speedup or repeated-run uncertainty established",
+  "code_sha256": {
+    "scripts/allocate_solar.py": "2ec852691143b60fcdceb6e8239c912d0ab532bcdbd7c7705e3a221f17d250e1",
+    "scripts/allocation_experiments.py": "a3c777a54625f6feb1d2fc043a99866d239226ac4f73c08444619f1a8f60587a",
+    "scripts/allocation_results.py": "66ce028746141212388200ca6590ac4b0422cacf6471c9f61cd8389f113b6481",
+    "scripts/audit_time_alignment.py": "2f39b52f485331500b6cb1f8a58ac3aff0c627691965faa16c62e6e0925a2965",
+    "scripts/benchmark_scaling.py": "706647c5b599f5ae9894b12ec0c384b752bd85346761a2d851b658cc2ad8c8c9",
+    "scripts/build_model_features.py": "bcc87e5c57e4f57b6268fd883c6ebc3ce55aecb7bc6e5625e09c14e19b68616a",
+    "scripts/build_pvwatts_profile.py": "2f50eac0ec72edeeecb0549bc0c4484c7ecd2cfc35e1b42196ec41ff6217790a",
+    "scripts/build_results_dashboard.py": "89bb036a377bff4fae7f788ee9218e8f133c8e7bab20074b60ea624fc7687930",
+    "scripts/convert_parquet.py": "84fd7bf5c675c98e92fa5685d3b61a3cd69a2befd0c7c83ff7b0631f9438058f",
+    "scripts/download_larimer_baseline.py": "013d8921d4b896d7924776010a5173471c40e4ff986851134de920b044253c9c",
+    "scripts/final_allocation.py": "c84747c582a9672db8e42aedf730267cb85a1b5a0eb2cfc986db54d714dac98e",
+    "scripts/final_dashboard_data.py": "898dd3f12c075f67b4dc5c9a0faab65bc4f219567e0a606e94656219b0a108c4",
+    "scripts/hourly_alignment.py": "7951f168a6f51957475fd9018f941d8900801ae5efebedf04d6e651bc3caf605",
+    "scripts/housing_features.py": "a74230c00cd8bcc463c9e5c1e72d7a252060303132c51b4a9a349604177b6008",
+    "scripts/join_resstock_pvwatts.py": "a394359f5de9ff7a691bc87c94224d01a0024e834462016e17a6f85c6773b067",
+    "scripts/predict_lstm.py": "fa704c78e5fec265a80820947827fb44669f46cdf91d19e258e638a5b331fa1b",
+    "scripts/prepare_allocation.py": "db22d4c54467a5be02ea588992d5f373b5dacc8eb10d4d8109842a2e9a6a5a9e",
+    "scripts/prepare_lstm_data.py": "73899f102a2339b5a852c46d0020911fd3c8bf0dc89c53e8f23fc38bb91e664e",
+    "scripts/pvwatts_api.py": "8e3e89746b315cd469001603a1aeb718cf3c45f5c4a146fcb21e92d8d92369b3",
+    "scripts/reproduce_final_study.py": "f2b2b4da8d367ccea00d143d4afd80c3d77596bd6a229575115fc0542f836704",
+    "scripts/resstock_pilot.py": "c75c00d6498e1c75294acbc00ba2ce3ce519398e23d97aad86096b08eb69f92e",
+    "scripts/runtime_evidence.py": "2545538bf4740e5e35330f8e046454ba42b6223c38bd6eb6022b7853c402c20f",
+    "scripts/seasonal_naive.py": "a561ebca2d36c2c0a53e70257d294715dc6daff0de4617d9e970b6db4ebb554f",
+    "scripts/serve_grid_dashboard.py": "235d4ad64d03329a1c43dd482c2d3a81dd29326bb40dd60a6176c13d216ae543",
+    "scripts/simulate_grid_import.py": "5508938b5bd3936ff349819912499e6318a00f9cbf344ed5a3ef6fc4ed045c9e",
+    "scripts/study_results.py": "9e4e1353cbabaec39479093718d4e8d9fa288aa46142bb4ccf841f809d88d29b",
+    "scripts/summarize_forecasts.py": "ba6db9e4548fe6a21584f14c1a0373177ee14cd37f0554d30b84927bd262d6f1",
+    "scripts/train_lstm.py": "3c1fb5580c68ae77c8f33f0c659803ef6cd7b45a87569d8b5d3fb2feaf7630f4",
+    "scripts/train_random_forest.py": "526e65ff35af143f3ea1bf3b0deb6193884abc896e25a8c4956cd63b68433baa",
+    "scripts/verify_final_study.py": "64b59817d99fe9c35ee8f86f308b8d6bee626b46f24d508b3c83846e4a3e91bf"
+  }
+}

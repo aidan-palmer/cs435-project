@@ -1,6 +1,6 @@
 # Data Inventory and Data-Management Plan
 
-The project uses ResStock for simulated demand, PVWatts for a representative Fort Collins rooftop profile, and Census ACS for Larimer County housing context. The demand pilot's smoke check uses synthetic solar and emissions inputs. Solar-to-Grid, EPA CAMPD, EIA-930, and Cambium are candidate sources. The project has yet to adopt an emissions source or methodology.
+The project uses ResStock for simulated demand, PVWatts for a representative Fort Collins rooftop profile, and Census ACS for Larimer County housing context. The demand pilot's smoke check uses synthetic solar and emissions inputs. Solar-to-Grid, EPA CAMPD, EIA-930, and Cambium are candidate sources. The saved allocation scenario uses a constant 0.6997 kg CO2/kWh regional proxy, with zero export credit; provenance is recorded in the allocation assumptions and report. Alternative hourly emissions inputs remain unimplemented.
 
 ## Storage and API keys
 
